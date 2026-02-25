@@ -5,7 +5,7 @@ import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -24,7 +24,6 @@ import myplugin.generator.options.GeneratorOptions;
 import myplugin.generator.options.ProjectOptions;
 
 /** Action that activate code generation */
-@SuppressWarnings("serial")
 class GenerateAction extends MDAction{
 	
 	
@@ -46,7 +45,7 @@ class GenerateAction extends MDAction{
 			GeneratorOptions go = ProjectOptions.getProjectOptions().getGeneratorOptions().get("EJBGenerator");			
 			EJBGenerator generator = new EJBGenerator(go);
 			generator.generate();
-			/**  @ToDo: Also call other generators */ 
+			/*  @ToDo: Also call other generators */
 			JOptionPane.showMessageDialog(null, "Code is successfully generated! Generated code is in folder: " + go.getOutputPath() +
 					                         ", package: " + go.getFilePackage());
 			exportToXml();
@@ -67,16 +66,14 @@ class GenerateAction extends MDAction{
 				BufferedWriter out;		
 				try {
 					out = new BufferedWriter(new OutputStreamWriter(
-							new FileOutputStream(fileName), "UTF8"));					
+							new FileOutputStream(fileName), StandardCharsets.UTF_8));
 					xstream.toXML(FMModel.getInstance().getClasses(), out);
 					xstream.toXML(FMModel.getInstance().getEnumerations(), out);
 					
-				} catch (UnsupportedEncodingException e) {
-					JOptionPane.showMessageDialog(null, e.getMessage());				
 				} catch (FileNotFoundException e) {
 					JOptionPane.showMessageDialog(null, e.getMessage());				
-				}		             
-			}
+				}
+            }
 		}	
 	}	  
 

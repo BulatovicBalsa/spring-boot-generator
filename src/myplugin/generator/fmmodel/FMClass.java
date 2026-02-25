@@ -1,20 +1,24 @@
 package myplugin.generator.fmmodel;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-
+@Getter
+@Setter
 public class FMClass extends FMType {	
 	
 	private String visibility;
 	
 
 	//Class properties
-	private List<FMProperty> FMProperties = new ArrayList<FMProperty>();
+	private final List<FMProperty> FMProperties = new ArrayList<>();
 	
 	//list of packages (for import declarations) 
-	private List<String> importedPackages = new ArrayList<String>();
+	private final List<String> importedPackages = new ArrayList<>();
 	
 	/** @ToDo: add list of methods */
 	
@@ -40,10 +44,6 @@ public class FMClass extends FMType {
 		return FMProperties.size();
 	}
 	
-	public List<String> getImportedPackages(){
-		return importedPackages;
-	}
-
 	public Iterator<String> getImportedIterator(){
 		return importedPackages.iterator();
 	}
@@ -55,15 +55,4 @@ public class FMClass extends FMType {
 	public int getImportedCount(){
 		return FMProperties.size();
 	}
-	
-	public String getVisibility() {
-		return visibility;
-	}
-
-	public void setVisibility(String visibility) {
-		this.visibility = visibility;
-	}	
-
-	
-	
 }

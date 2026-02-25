@@ -1,5 +1,8 @@
 package myplugin.generator.fmmodel;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,10 +11,12 @@ import java.util.List;
  * using freemarker
  */
 
+@Setter
+@Getter
 public class FMModel {
 	
-	private List<FMClass> classes = new ArrayList<FMClass>();
-	private List<FMEnumeration> enumerations = new ArrayList<FMEnumeration>();
+	private List<FMClass> classes = new ArrayList<>();
+	private List<FMEnumeration> enumerations = new ArrayList<>();
 	
 	//....
 	/** @ToDo: Add lists of other elements, if needed */
@@ -27,20 +32,6 @@ public class FMModel {
 		}
 		return model;
 	}
-	
-	public List<FMClass> getClasses() {
-		return classes;
-	}
-	public void setClasses(List<FMClass> classes) {
-		this.classes = classes;
-	}
-	public List<FMEnumeration> getEnumerations() {
-		return enumerations;
-	}
-	public void setEnumerations(List<FMEnumeration> enumerations) {
-		this.enumerations = enumerations;
-	}
-
 
 
 }

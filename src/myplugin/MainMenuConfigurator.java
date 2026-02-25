@@ -13,7 +13,7 @@ public class MainMenuConfigurator implements AMConfigurator
 	/**
 	 * Actions that will be added to manager.
 	 */
-	private NMAction[] actions;
+	private final NMAction[] actions;
 
 	/**
 	 * Creates configurator.
@@ -38,9 +38,9 @@ public class MainMenuConfigurator implements AMConfigurator
 			category.setNested(true);
 			mngr.addCategory(category);
 		}
-		for(int i=0;i<actions.length;i++) {
-		   category.addAction(actions[i]);
-		}
+        for (NMAction action : actions) {
+            category.addAction(action);
+        }
 	}
 	
 	public int getPriority()

@@ -7,7 +7,7 @@ import java.util.Iterator;
 
 
 public class FMEnumeration extends FMType {
-	private ArrayList <String> Values = new ArrayList<String>();
+	private final ArrayList <String> Values = new ArrayList<>();
 	
 	public FMEnumeration(String name, String typePackage) {
 		super(name, typePackage);

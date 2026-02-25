@@ -1,8 +1,13 @@
 package myplugin.generator.options;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /** GeneratorOptions: options used for code generation. Every generator (ejb generator, forms generator etc) should
  * have one instance of this class */
 
+@Setter
+@Getter
 public class GeneratorOptions  {
 	private String outputPath; 
 	private String templateName;
@@ -22,54 +27,4 @@ public class GeneratorOptions  {
 		this.overwrite = overwrite;
 		this.filePackage = filePackage;
 	}
-
-	public String getOutputPath() {
-		return outputPath;
-	}
-
-	public void setOutputPath(String outputPath) {
-		this.outputPath = outputPath;
-	}
-
-	public String getTemplateName() {
-		return templateName;
-	}
-
-	public void setTemplateName(String templateName) {
-		this.templateName = templateName;
-	}
-
-	public String getTemplateDir() {
-		return templateDir;
-	}
-
-	public void setTemplateDir(String templateDir) {
-		this.templateDir = templateDir;
-	}
-
-	public String getOutputFileName() {
-		return outputFileName;
-	}
-
-	public void setOutputFileName(String outputFileName) {
-		this.outputFileName = outputFileName;
-	}
-
-	public Boolean getOverwrite() {
-		return overwrite;
-	}
-
-	public void setOverwrite(Boolean overwrite) {
-		this.overwrite = overwrite;
-	}
-
-	public String getFilePackage() {
-		return filePackage;
-	}
-
-	public void setFilePackage(String filePackage) {
-		this.filePackage = filePackage;
-	}
-	
-	
 }

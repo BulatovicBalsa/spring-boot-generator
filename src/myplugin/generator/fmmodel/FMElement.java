@@ -1,7 +1,12 @@
 package myplugin.generator.fmmodel;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /** Element - abstract ancestor for all model elements */
 
+@Setter
+@Getter
 public abstract class FMElement {
 	
 	private String name;
@@ -10,17 +15,7 @@ public abstract class FMElement {
 		this.name = name;
 	}
 
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-	
-	public Boolean hasName() {
+    public Boolean hasName() {
 		return name != null;
 	}
-
-	
 }

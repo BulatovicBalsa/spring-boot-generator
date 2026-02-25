@@ -1,21 +1,18 @@
 package myplugin.generator.fmmodel;
 
-public class FMType extends FMElement {	
+import lombok.Getter;
+import lombok.Setter;
 
-	public String getTypePackage() {
-		return typePackage;
-	}
+@Setter
+@Getter
+public class FMType extends FMElement {
 
-	public FMType(String name, String typePackage) {
+    public FMType(String name, String typePackage) {
 		super(name);
 		this.typePackage = typePackage;
 	}
 
-	public void setTypePackage(String typePackage) {
-		this.typePackage = typePackage;
-	}
-	
-	//Qualified package name, used for import declaration 
+    //Qualified package name, used for import declaration
 	//Empty string for standard library types
 	private String typePackage;
 

@@ -37,25 +37,21 @@ public class EJBGenerator extends BasicGenerator {
 		}
 
 		List<FMClass> classes = FMModel.getInstance().getClasses();
-		for (int i = 0; i < classes.size(); i++) {
-			FMClass cl = classes.get(i);
-			Writer out;
-			Map<String, Object> context = new HashMap<String, Object>();
-			try {
-				out = getWriter(cl.getName(), cl.getTypePackage());
-				if (out != null) {
-					context.clear();
-					context.put("class", cl);
-					context.put("properties", cl.getProperties());
-					context.put("importedPackages", cl.getImportedPackages());
-					getTemplate().process(context, out);
-					out.flush();
-				}
-			} catch (TemplateException e) {
-				JOptionPane.showMessageDialog(null, e.getMessage());
-			} catch (IOException e) {
-				JOptionPane.showMessageDialog(null, e.getMessage());
-			}
-		}
+        for (FMClass cl : classes) {
+            Writer out;
+            Map<String, Object> context = new HashMap<>();
+            try {
+                out = getWriter(cl.getName(), cl.getTypePackage());
+                if (out != null) {
+                    context.put("class", cl);
+                    context.put("properties", cl.getProperties());
+                    context.put("importedPackages", cl.getImportedPackages());
+                    getTemplate().process(context, out);
+                    out.flush();
+                }
+            } catch (TemplateException | IOException e) {
+                JOptionPane.showMessageDialog(null, e.getMessage());
+            }
+        }
 	}
 }

@@ -25,7 +25,7 @@ public class MyPlugin extends com.nomagic.magicdraw.plugins.Plugin {
 		ActionsConfiguratorsManager manager = ActionsConfiguratorsManager.getInstance();		
 		manager.addMainMenuConfigurator(new MainMenuConfigurator(getSubmenuActions()));
 		
-		/** @Todo: load project options (@see myplugin.generator.options.ProjectOptions) from 
+		/* @Todo: load project options (@see myplugin.generator.options.ProjectOptions) from
 		 * ProjectOptions.xml and take ejb generator options */
 		
 		//for test purpose only:

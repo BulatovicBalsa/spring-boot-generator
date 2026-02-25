@@ -3,6 +3,8 @@ package myplugin.analyzer;
 import java.util.Iterator;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
 import myplugin.generator.fmmodel.FMClass;
 import myplugin.generator.fmmodel.FMEnumeration;
 import myplugin.generator.fmmodel.FMModel;
@@ -27,13 +29,14 @@ import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Type;
  * @ToDo: Enhance (or completely rewrite) myplugin.generator.fmmodel classes and  
  * Model Analyzer methods in order to support GUI generation. */ 
 
-
+@Getter
+@Setter
 public class ModelAnalyzer {	
 	//root model package
-	private Package root;
+    private final Package root;
 	
 	//java root package for generated code
-	private String filePackage;
+	private final String filePackage;
 	
 	public ModelAnalyzer(Package root, String filePackage) {
 		super();
@@ -41,11 +44,7 @@ public class ModelAnalyzer {
 		this.filePackage = filePackage;
 	}
 
-	public Package getRoot() {
-		return root;
-	}
-	
-	public void prepareModel() throws AnalyzeException {
+    public void prepareModel() throws AnalyzeException {
 		FMModel.getInstance().getClasses().clear();
 		FMModel.getInstance().getEnumerations().clear();
 		processPackage(root, filePackage);
@@ -64,33 +63,31 @@ public class ModelAnalyzer {
 		}
 		
 		if (pack.hasOwnedElement()) {
+
+            for (Element ownedElement : pack.getOwnedElement()) {
+                if (ownedElement instanceof Class) {
+                    Class cl = (Class) ownedElement;
+                    FMClass fmClass = getClassData(cl, packageName);
+                    FMModel.getInstance().getClasses().add(fmClass);
+                }
+
+                if (ownedElement instanceof Enumeration) {
+                    Enumeration en = (Enumeration) ownedElement;
+                    FMEnumeration fmEnumeration = getEnumerationData(en, packageName);
+                    FMModel.getInstance().getEnumerations().add(fmEnumeration);
+                }
+            }
+
+            for (Element ownedElement : pack.getOwnedElement()) {
+                if (ownedElement instanceof Package) {
+                    Package ownedPackage = (Package) ownedElement;
+                    if (StereotypesHelper.getAppliedStereotypeByString(ownedPackage, "BusinessApp") != null)
+                        //only packages with stereotype BusinessApp are candidates for metadata extraction and code generation:
+                        processPackage(ownedPackage, packageName);
+                }
+            }
 			
-			for (Iterator<Element> it = pack.getOwnedElement().iterator(); it.hasNext();) {
-				Element ownedElement = it.next();
-				if (ownedElement instanceof Class) {
-					Class cl = (Class)ownedElement;
-					FMClass fmClass = getClassData(cl, packageName);
-					FMModel.getInstance().getClasses().add(fmClass);
-				}
-				
-				if (ownedElement instanceof Enumeration) {
-					Enumeration en = (Enumeration)ownedElement;
-					FMEnumeration fmEnumeration = getEnumerationData(en, packageName);
-					FMModel.getInstance().getEnumerations().add(fmEnumeration);
-				}								
-			}
-			
-			for (Iterator<Element> it = pack.getOwnedElement().iterator(); it.hasNext();) {
-				Element ownedElement = it.next();
-				if (ownedElement instanceof Package) {					
-					Package ownedPackage = (Package)ownedElement;
-					if (StereotypesHelper.getAppliedStereotypeByString(ownedPackage, "BusinessApp") != null)
-						//only packages with stereotype BusinessApp are candidates for metadata extraction and code generation:
-						processPackage(ownedPackage, packageName);
-				}
-			}
-			
-			/** @ToDo:
+			/* @ToDo:
 			  * Process other package elements, as needed */ 
 		}
 	}
@@ -107,7 +104,7 @@ public class ModelAnalyzer {
 			fmClass.addProperty(prop);	
 		}	
 		
-		/** @ToDo:
+		/* @ToDo:
 		 * Add import declarations etc. */		
 		return fmClass;
 	}
@@ -129,10 +126,9 @@ public class ModelAnalyzer {
 			
 		int lower = p.getLower();
 		int upper = p.getUpper();
-		
-		FMProperty prop = new FMProperty(attName, typeName, p.getVisibility().toString(), 
-				lower, upper);
-		return prop;		
+
+        return new FMProperty(attName, typeName, p.getVisibility().toString(),
+                lower, upper);
 	}	
 	
 	private FMEnumeration getEnumerationData(Enumeration enumeration, String packageName) throws AnalyzeException {

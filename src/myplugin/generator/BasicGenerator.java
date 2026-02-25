@@ -1,37 +1,40 @@
 package myplugin.generator;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.file.Files;
+import java.util.Objects;
 
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
+import lombok.Getter;
+import lombok.Setter;
 import myplugin.generator.options.GeneratorOptions;
 
 /**
  * Abstract generator that creates necessary environment for code generation 
  * (creating directory for code generation, fetching template, creating file with given name 
- * for code generation etc). It should be ancestor for all generators in this project. 
+ * for code generation etc.). It should be ancestor for all generators in this project.
 */
 
+@Setter
+@Getter
 public abstract class BasicGenerator {
 
-	private GeneratorOptions generatorOptions; 
-	private String outputPath;	
+    private String outputPath;
 	private String templateName;
 	private String templateDir;
 	private String outputFileName;
-	private boolean overwrite = false;
+	private boolean overwrite;
 	private String filePackage;
 	private Configuration cfg;
 	private Template template;	
 	
 	public BasicGenerator(GeneratorOptions generatorOptions) {
-		this.generatorOptions = generatorOptions;
-		this.outputPath = generatorOptions.getOutputPath();
+        this.outputPath = generatorOptions.getOutputPath();
 		this.templateName = generatorOptions.getTemplateName();
 		this.templateDir = generatorOptions.getTemplateDir();
 		this.outputFileName = generatorOptions.getOutputFileName();
@@ -74,9 +77,8 @@ public abstract class BasicGenerator {
 	}
 
 	public Writer getWriter(String fileNamePart, String packageName) throws IOException {
-		if (packageName != filePackage) {
-			packageName.replace(".", File.separator);		
-			filePackage = packageName;
+		if (!Objects.equals(packageName, filePackage)) {
+			filePackage = packageName.replace(".", File.separator);
 		}
 			
 		String fullPath = outputPath
@@ -100,81 +102,11 @@ public abstract class BasicGenerator {
 			return null;
 		}
 
-		return new OutputStreamWriter(new FileOutputStream(of));
+		return new OutputStreamWriter(Files.newOutputStream(of.toPath()));
 
 	}
 
 	protected String packageToPath(String pack) {
 		return pack.replace(".", File.separator);
 	}
-
-	public boolean isOverwrite() {
-		return overwrite;
-	}
-
-	public void setOverwrite(boolean overwrite) {
-		this.overwrite = overwrite;
-	}
-
-	public Writer getWriter() throws IOException {
-		return getWriter("", filePackage);
-
-	}
-
-	public void setOutputPath(String output) {
-		this.outputPath = output;
-	}
-
-	public void setTemplateName(String templateName) {
-		this.templateName = templateName;
-	}
-	
-	public void setTemplateDir(String templateDir) {
-		this.templateDir = templateDir;
-	}
-
-	public void setOutputFileName(String outputFileName) {
-		this.outputFileName = outputFileName;
-	}		
-	
-	public Configuration getCfg() {
-		return cfg;
-	}
-
-	public void setCfg(Configuration cfg) {
-		this.cfg = cfg;
-	}
-
-	public Template getTemplate() {
-		return template;
-	}
-
-	public void setTemplate(Template template) {
-		this.template = template;
-	}
-
-	public String getOutputPath() {
-		return outputPath;
-	}
-
-	public String getTemplateName() {
-		return templateName;
-	}
-	
-	public String getTemplateDir() {
-		return templateDir;
-	}
-
-	public String getOutputFileName() {
-		return outputFileName;
-	}
-
-	public String getFilePackage() {
-		return filePackage;
-	}
-
-	public void setFilePackage(String filePackage) {
-		this.filePackage = filePackage;
-	}
-
 }
