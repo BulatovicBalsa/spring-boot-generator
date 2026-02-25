@@ -1,0 +1,40 @@
+# Compiled class files
+*.class
+
+# Package files
+*.jar
+*.war
+*.ear
+*.zip
+
+# Ant build directory
+build/
+dist/
+bin/
+
+# IDE files
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Gradle (if used)
+.gradle/
+gradle/
+
+# Maven (if used)
+target/
+pom.xml.tag
+pom.xml.asc
+
+# Dependencies
+lib/
+*.log
