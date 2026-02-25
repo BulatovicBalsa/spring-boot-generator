@@ -17,7 +17,7 @@ public class MyPlugin extends com.nomagic.magicdraw.plugins.Plugin {
 	String pluginDir = null; 
 	
 	public void init() {
-		JOptionPane.showMessageDialog( null, "My Plugin init bb");
+		JOptionPane.showMessageDialog( null, "My Plugin init bb2002");
 		
 		pluginDir = getDescriptor().getPluginDirectory().getPath();
 		
