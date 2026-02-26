@@ -24,7 +24,7 @@ class GenerateAction extends MDAction {
 		if (root == null) return;
 
 		try {
-			ModelAnalyzer analyzer = new ModelAnalyzer(root, "com.example.generated");
+			ModelAnalyzer analyzer = new ModelAnalyzer(root);
 			analyzer.prepareModel();
 
 			EntityGenerator generator = new EntityGenerator(MyPlugin.ENTITY_OPTIONS);

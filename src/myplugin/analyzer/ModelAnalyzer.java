@@ -1,148 +1,107 @@
 package myplugin.analyzer;
 
 import java.util.Iterator;
-import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
 import myplugin.generator.fmmodel.FMClass;
-import myplugin.generator.fmmodel.FMEnumeration;
 import myplugin.generator.fmmodel.FMModel;
 import myplugin.generator.fmmodel.FMProperty;
 
 import com.nomagic.uml2.ext.jmi.helpers.ModelHelper;
 import com.nomagic.uml2.ext.jmi.helpers.StereotypesHelper;
-import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Element;
-import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.EnumerationLiteral;
-import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Package;
 import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Class;
-import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Enumeration;
+import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Element;
+import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Package;
 import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Property;
 import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Type;
 
-
-/** Model Analyzer takes necessary metadata from the MagicDraw model and puts it in 
- * the intermediate data structure (@see myplugin.generator.fmmodel.FMModel) optimized
- * for code generation using freemarker. Model Analyzer now takes metadata only for ejb code 
- * generation
-
- * @ToDo: Enhance (or completely rewrite) myplugin.generator.fmmodel classes and  
- * Model Analyzer methods in order to support GUI generation. */ 
-
+/**
+ * Minimal analyzer for JPA entity generation (no relations).
+ * - Collects UML Classes and their attributes into FMModel
+ * - Uses fixed java package (filePackage)
+ * - Traverses only packages stereotyped as BusinessApp (kept from old logic)
+ */
 @Getter
 @Setter
-public class ModelAnalyzer {	
-	//root model package
-    private final Package root;
-	
-	//java root package for generated code
-	private final String filePackage;
-	
-	public ModelAnalyzer(Package root, String filePackage) {
-		super();
+public class ModelAnalyzer {
+
+	private final Package root;
+
+	public ModelAnalyzer(Package root) {
 		this.root = root;
-		this.filePackage = filePackage;
 	}
 
-    public void prepareModel() throws AnalyzeException {
+	public void prepareModel() throws AnalyzeException {
 		FMModel.getInstance().getClasses().clear();
-		FMModel.getInstance().getEnumerations().clear();
-		processPackage(root, filePackage);
-	}
-	
-	private void processPackage(Package pack, String packageOwner) throws AnalyzeException {
-		//Recursive procedure that extracts data from package elements and stores it in the 
-		// intermediate data structure
-
-		if (pack.getName() == null) throw  
-			new AnalyzeException("Packages must have names!");
-		
-		String packageName = packageOwner;
-		if (pack != root) {
-			packageName += "." + pack.getName();
+		// Enumerations not used in this phase
+		if (FMModel.getInstance().getEnumerations() != null) {
+			FMModel.getInstance().getEnumerations().clear();
 		}
-		
-		if (pack.hasOwnedElement()) {
 
-            for (Element ownedElement : pack.getOwnedElement()) {
-                if (ownedElement instanceof Class) {
-                    Class cl = (Class) ownedElement;
-                    FMClass fmClass = getClassData(cl, packageName);
-                    FMModel.getInstance().getClasses().add(fmClass);
-                }
+		// fixed package for generated code
+		processPackage(root);
+	}
 
-                if (ownedElement instanceof Enumeration) {
-                    Enumeration en = (Enumeration) ownedElement;
-                    FMEnumeration fmEnumeration = getEnumerationData(en, packageName);
-                    FMModel.getInstance().getEnumerations().add(fmEnumeration);
-                }
-            }
+	private void processPackage(Package pack) throws AnalyzeException {
+		if (pack.getName() == null) {
+			throw new AnalyzeException("Packages must have names!");
+		}
 
-            for (Element ownedElement : pack.getOwnedElement()) {
-                if (ownedElement instanceof Package) {
-                    Package ownedPackage = (Package) ownedElement;
-                    if (StereotypesHelper.getAppliedStereotypeByString(ownedPackage, "BusinessApp") != null)
-                        //only packages with stereotype BusinessApp are candidates for metadata extraction and code generation:
-                        processPackage(ownedPackage, packageName);
-                }
-            }
-			
-			/* @ToDo:
-			  * Process other package elements, as needed */ 
+		if (!pack.hasOwnedElement()) return;
+
+		// 1) Extract classes from this package
+		for (Element ownedElement : pack.getOwnedElement()) {
+			if (ownedElement instanceof Class) {
+				Class cl = (Class) ownedElement;
+				FMClass fmClass = getClassData(cl); // <-- fixed package
+				FMModel.getInstance().getClasses().add(fmClass);
+			}
+		}
+
+		// 2) Recurse into child packages that are marked as BusinessApp
+		for (Element ownedElement : pack.getOwnedElement()) {
+			if (ownedElement instanceof Package) {
+				Package ownedPackage = (Package) ownedElement;
+				if (StereotypesHelper.getAppliedStereotypeByString(ownedPackage, "BusinessApp") != null) {
+					processPackage(ownedPackage);
+				}
+			}
 		}
 	}
-	
-	private FMClass getClassData(Class cl, String packageName) throws AnalyzeException {
-		if (cl.getName() == null) 
+
+	private FMClass getClassData(Class cl) throws AnalyzeException {
+		if (cl.getName() == null) {
 			throw new AnalyzeException("Classes must have names!");
-		
-		FMClass fmClass = new FMClass(cl.getName(), packageName, cl.getVisibility().toString());
+		}
+
+		FMClass fmClass = new FMClass(cl.getName());
+
 		Iterator<Property> it = ModelHelper.attributes(cl);
 		while (it.hasNext()) {
 			Property p = it.next();
 			FMProperty prop = getPropertyData(p, cl);
-			fmClass.addProperty(prop);	
-		}	
-		
-		/* @ToDo:
-		 * Add import declarations etc. */		
+			fmClass.addProperty(prop);
+		}
 		return fmClass;
 	}
-	
+
 	private FMProperty getPropertyData(Property p, Class cl) throws AnalyzeException {
 		String attName = p.getName();
-		if (attName == null) 
-			throw new AnalyzeException("Properties of the class: " + cl.getName() +
-					" must have names!");
-		Type attType = p.getType();
-		if (attType == null)
-			throw new AnalyzeException("Property " + cl.getName() + "." +
-			p.getName() + " must have type!");
-		
-		String typeName = attType.getName();
-		if (typeName == null)
-			throw new AnalyzeException("Type ot the property " + cl.getName() + "." +
-			p.getName() + " must have name!");		
-			
-		int lower = p.getLower();
-		int upper = p.getUpper();
-
-        return new FMProperty(attName, typeName, p.getVisibility().toString(),
-                lower, upper);
-	}	
-	
-	private FMEnumeration getEnumerationData(Enumeration enumeration, String packageName) throws AnalyzeException {
-		FMEnumeration fmEnum = new FMEnumeration(enumeration.getName(), packageName);
-		List<EnumerationLiteral> list = enumeration.getOwnedLiteral();
-		for (int i = 0; i < list.size() - 1; i++) {
-			EnumerationLiteral literal = list.get(i);
-			if (literal.getName() == null)  
-				throw new AnalyzeException("Items of the enumeration " + enumeration.getName() +
-				" must have names!");
-			fmEnum.getValues().add(literal.getName());
+		if (attName == null) {
+			throw new AnalyzeException("Properties of the class: " + cl.getName() + " must have names!");
 		}
-		return fmEnum;
-	}	
-	
-	
+
+		Type attType = p.getType();
+		if (attType == null) {
+			throw new AnalyzeException("Property " + cl.getName() + "." + attName + " must have type!");
+		}
+
+		String typeName = attType.getName();
+		if (typeName == null) {
+			throw new AnalyzeException("Type of the property " + cl.getName() + "." + attName + " must have name!");
+		}
+
+        return new FMProperty(attName, typeName);
+	}
 }
