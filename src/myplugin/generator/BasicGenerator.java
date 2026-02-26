@@ -24,51 +24,41 @@ import myplugin.generator.options.GeneratorOptions;
 @Getter
 public abstract class BasicGenerator {
 
-    private String outputPath;
-	private String templateName;
-	private String templateDir;
-	private String outputFileName;
-	private boolean overwrite;
-	private String filePackage;
 	private Configuration cfg;
-	private Template template;	
-	
+	private Template template;
+	protected final GeneratorOptions generatorOptions;
+
 	public BasicGenerator(GeneratorOptions generatorOptions) {
-        this.outputPath = generatorOptions.getOutputPath();
-		this.templateName = generatorOptions.getTemplateName();
-		this.templateDir = generatorOptions.getTemplateDir();
-		this.outputFileName = generatorOptions.getOutputFileName();
-		this.overwrite = generatorOptions.getOverwrite();
-		this.filePackage = generatorOptions.getFilePackage();
+		this.generatorOptions = generatorOptions;
 	}
 
 	public void generate() throws IOException {		
-		if (outputPath == null) {
+		if (generatorOptions.getOutputPath() == null) {
 			throw new IOException("Output path is not defined!");
 		}	
-		if (templateName == null) {
+		if (generatorOptions.getTemplateName() == null) {
 			throw new IOException("Template name is not defined!");
 		}
-		if (outputFileName == null) {
+		if (generatorOptions.getOutputFileName() == null) {
 			throw new IOException("Output file name is not defined!");
 		}
-		if (filePackage == null) {
+		if (generatorOptions.getFilePackage() == null) {
 			throw new IOException("Package name for code generation is not defined!");
 		}
 
 		cfg = new Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS);		
 
-		final String tName = templateName + ".ftl";
+		final String tName = generatorOptions.getTemplateName() + ".ftl";
 		try {
-			cfg.setDirectoryForTemplateLoading(new File(templateDir));
+			cfg.setDirectoryForTemplateLoading(new File(generatorOptions.getTemplateDir()));
 			template = cfg.getTemplate(tName);
 			DefaultObjectWrapperBuilder builder = 
 					new DefaultObjectWrapperBuilder(cfg.getIncompatibleImprovements());
 			cfg.setObjectWrapper(builder.build());
-			File op = new File(outputPath);
+			File op = new File(generatorOptions.getOutputPath());
 			if (!op.exists() && !op.mkdirs()) {
 					throw new IOException(
-							"An error occurred during folder creation " + outputPath);
+							"An error occurred during folder creation " + generatorOptions.getOutputPath());
 			}
 		} catch (IOException e) {
 			throw new IOException("Can't find template " + tName + ".", e);
@@ -77,28 +67,29 @@ public abstract class BasicGenerator {
 	}
 
 	public Writer getWriter(String fileNamePart, String packageName) throws IOException {
+		String filePackage = generatorOptions.getFilePackage();
 		if (!Objects.equals(packageName, filePackage)) {
 			filePackage = packageName.replace(".", File.separator);
 		}
 			
-		String fullPath = outputPath
+		String fullPath = generatorOptions.getOutputPath()
 				+ File.separator
 				+ (filePackage.isEmpty() ? "" : packageToPath(filePackage)
 						+ File.separator)
-				+ outputFileName.replace("{0}", fileNamePart);
+				+ generatorOptions.getOutputFileName().replace("{0}", fileNamePart);
 
 		File of = new File(fullPath);
 		if (!of.getParentFile().exists()) {
 			if (!of.getParentFile().mkdirs()) {
 				throw new IOException("An error occurred during output folder creation "
-						+ outputPath);
+						+ generatorOptions.getOutputPath());
 			}
 		}
 
 		System.out.println(of.getPath());
 		System.out.println(of.getName());
 
-		if (!isOverwrite() && of.exists()) {
+		if (!generatorOptions.getOverwrite() && of.exists()) {
 			return null;
 		}
 

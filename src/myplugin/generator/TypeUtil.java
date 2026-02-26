@@ -16,6 +16,9 @@ public class TypeUtil {
             case "boolean": return "Boolean";
             case "date":
             case "datetime": return "java.time.LocalDateTime";
+            case "uuid":
+            case "java.util.uuid":
+                return "java.util.UUID";
             default:
                 return umlTypeName;
         }

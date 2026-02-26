@@ -2,6 +2,7 @@ package myplugin.generator.options;
 
 import lombok.Getter;
 import lombok.Setter;
+import myplugin.generator.IdStrategy;
 
 /** GeneratorOptions: options used for code generation. Every generator (ejb generator, forms generator etc) should
  * have one instance of this class */
@@ -15,10 +16,11 @@ public class GeneratorOptions  {
 	private String outputFileName;
 	private Boolean overwrite;
 	private String filePackage;
+	private IdStrategy idStrategy;
 	
 	public GeneratorOptions(String outputPath, String templateName,
 			String templateDir, String outputFileName, Boolean overwrite,
-			String filePackage) {
+			String filePackage, IdStrategy idStrategy) {
 		super();
 		this.outputPath = outputPath;
 		this.templateName = templateName;
@@ -26,5 +28,6 @@ public class GeneratorOptions  {
 		this.outputFileName = outputFileName;
 		this.overwrite = overwrite;
 		this.filePackage = filePackage;
+		this.idStrategy = idStrategy;
 	}
 }

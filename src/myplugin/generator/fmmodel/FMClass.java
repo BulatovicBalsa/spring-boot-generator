@@ -18,5 +18,10 @@ public class FMClass {
 		this.name = name;
 	}
 
-    public void addProperty(FMProperty p) { this.properties.add(p); }
+	public boolean hasId() {
+		for (FMProperty prop : properties) {
+			if (prop.isId()) return true;
+		}
+		return false;
+	}
 }

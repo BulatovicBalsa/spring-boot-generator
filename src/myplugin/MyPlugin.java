@@ -6,6 +6,7 @@ import javax.swing.JOptionPane;
 import com.nomagic.actions.NMAction;
 import com.nomagic.magicdraw.actions.ActionsConfiguratorsManager;
 
+import myplugin.generator.IdStrategy;
 import myplugin.generator.options.GeneratorOptions;
 
 public class MyPlugin extends com.nomagic.magicdraw.plugins.Plugin {
@@ -27,7 +28,8 @@ public class MyPlugin extends com.nomagic.magicdraw.plugins.Plugin {
 				"templates",
 				"{0}.java",
 				true,
-				"com.example.generated"
+				"com.example.generated",
+				IdStrategy.UUID
 		);
 
 		ENTITY_OPTIONS.setTemplateDir(pluginDir + File.separator + ENTITY_OPTIONS.getTemplateDir());

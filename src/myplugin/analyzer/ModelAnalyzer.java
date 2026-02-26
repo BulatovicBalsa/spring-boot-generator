@@ -2,6 +2,7 @@ package myplugin.analyzer;
 
 import java.util.Iterator;
 
+import com.nomagic.uml2.ext.magicdraw.mdprofiles.Stereotype;
 import lombok.Getter;
 import lombok.Setter;
 import myplugin.generator.fmmodel.FMClass;
@@ -52,6 +53,7 @@ public class ModelAnalyzer {
 
 		// 1) Extract classes from this package
 		for (Element ownedElement : pack.getOwnedElement()) {
+			if (ownedElement instanceof Stereotype) continue;
 			if (ownedElement instanceof Class) {
 				Class cl = (Class) ownedElement;
 				FMClass fmClass = getClassData(cl); // <-- fixed package
@@ -81,7 +83,7 @@ public class ModelAnalyzer {
 		while (it.hasNext()) {
 			Property p = it.next();
 			FMProperty prop = getPropertyData(p, cl);
-			fmClass.addProperty(prop);
+			fmClass.getProperties().add(prop);
 		}
 		return fmClass;
 	}
@@ -102,6 +104,9 @@ public class ModelAnalyzer {
 			throw new AnalyzeException("Type of the property " + cl.getName() + "." + attName + " must have name!");
 		}
 
-        return new FMProperty(attName, typeName);
+		boolean isId = StereotypesHelper.getAppliedStereotypeByString(p, "Id") != null
+				|| "id".equalsIgnoreCase(attName);
+
+        return new FMProperty(attName, typeName, isId);
 	}
 }

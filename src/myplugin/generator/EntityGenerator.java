@@ -22,15 +22,17 @@ public class EntityGenerator extends BasicGenerator {
         super.generate();
 
         for (FMClass clazz : FMModel.getInstance().getClasses()) {
-            Writer out = getWriter(clazz.getName(), getFilePackage());
+            Writer out = getWriter(clazz.getName(), generatorOptions.getFilePackage());
             if (out == null) continue; 
 
             Map<String, Object> model = new HashMap<>();
-            model.put("packageName", getFilePackage());
+            model.put("packageName", generatorOptions.getFilePackage());
             model.put("clazz", clazz);
             model.put("props", clazz.getProperties());
             model.put("typeUtil", typeUtil);
             model.put("tableName", toTableName(clazz.getName()));
+            model.put("hasId", clazz.hasId());
+            model.put("idStrategy", generatorOptions.getIdStrategy());
 
             try {
                 getTemplate().process(model, out);
