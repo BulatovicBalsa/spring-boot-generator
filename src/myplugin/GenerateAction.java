@@ -1,72 +1,44 @@
 package myplugin;
 
 import java.awt.event.ActionEvent;
-import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
-
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 import com.nomagic.magicdraw.actions.MDAction;
 import com.nomagic.magicdraw.core.Application;
 import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Package;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.DomDriver;
 
 import myplugin.analyzer.AnalyzeException;
 import myplugin.analyzer.ModelAnalyzer;
-import myplugin.generator.fmmodel.FMModel;
+import myplugin.generator.EntityGenerator;
 
-/** Action that activate code generation */
-class GenerateAction extends MDAction{
-	
-	
-	public GenerateAction(String name) {			
-		super("", name, null, null);		
+class GenerateAction extends MDAction {
+
+	public GenerateAction(String name) {
+		super("", name, null, null);
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent evt) {
-		
 		if (Application.getInstance().getProject() == null) return;
 		Package root = Application.getInstance().getProject().getModel();
-		
 		if (root == null) return;
-	
-		ModelAnalyzer analyzer = new ModelAnalyzer(root, "ejb");	
-		
+
 		try {
-			analyzer.prepareModel();	
-			/*  TODO: Call generators */
-			exportToXml();
+			ModelAnalyzer analyzer = new ModelAnalyzer(root, "com.example.generated");
+			analyzer.prepareModel();
+
+			EntityGenerator generator = new EntityGenerator(MyPlugin.ENTITY_OPTIONS);
+			generator.generate();
+
+			JOptionPane.showMessageDialog(
+					null,
+					"Entities generated to: " + MyPlugin.ENTITY_OPTIONS.getOutputPath() +
+							"\npackage: " + MyPlugin.ENTITY_OPTIONS.getFilePackage()
+			);
 		} catch (AnalyzeException e) {
 			JOptionPane.showMessageDialog(null, e.getMessage());
-		} 			
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Generation failed: " + e.getMessage());
+		}
 	}
-	
-	private void exportToXml() {
-		if (JOptionPane.showConfirmDialog(null, "Do you want to save FM Model?") == 
-			JOptionPane.OK_OPTION)
-		{	
-			JFileChooser jfc = new JFileChooser();
-			if (jfc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-				String fileName = jfc.getSelectedFile().getAbsolutePath();
-			
-				XStream xstream = new XStream(new DomDriver());
-				BufferedWriter out;		
-				try {
-					out = new BufferedWriter(new OutputStreamWriter(
-							new FileOutputStream(fileName), StandardCharsets.UTF_8));
-					xstream.toXML(FMModel.getInstance().getClasses(), out);
-					xstream.toXML(FMModel.getInstance().getEnumerations(), out);
-					
-				} catch (FileNotFoundException e) {
-					JOptionPane.showMessageDialog(null, e.getMessage());				
-				}
-            }
-		}	
-	}	  
-
 }

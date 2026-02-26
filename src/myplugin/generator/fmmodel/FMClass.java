@@ -13,7 +13,7 @@ public class FMClass extends FMType {
 	private String visibility;
 	
 	//Class properties
-	private final List<FMProperty> FMProperties = new ArrayList<>();
+	private final List<FMProperty> properties = new ArrayList<>();
 	
 	//list of packages (for import declarations) 
 	private final List<String> importedPackages = new ArrayList<>();
@@ -24,6 +24,6 @@ public class FMClass extends FMType {
 	}
 
 	public void addProperty(FMProperty property){
-		FMProperties.add(property);		
+		properties.add(property);
 	}
 }

@@ -1,38 +1,42 @@
 package myplugin;
 
+import java.io.File;
 import javax.swing.JOptionPane;
+
 import com.nomagic.actions.NMAction;
 import com.nomagic.magicdraw.actions.ActionsConfiguratorsManager;
 
-/** MagicDraw plugin that performes code generation */
+import myplugin.generator.options.GeneratorOptions;
+
 public class MyPlugin extends com.nomagic.magicdraw.plugins.Plugin {
-	
-	String pluginDir = null; 
-	
+
+	public static GeneratorOptions ENTITY_OPTIONS;
+
+    @Override
 	public void init() {
-		JOptionPane.showMessageDialog( null, "My Plugin init bb2002");
-		
-		pluginDir = getDescriptor().getPluginDirectory().getPath();
-		
-		// Creating submenu in the MagicDraw main menu 	
-		ActionsConfiguratorsManager manager = ActionsConfiguratorsManager.getInstance();		
+		JOptionPane.showMessageDialog(null, "My Plugin init");
+
+        String pluginDir = getDescriptor().getPluginDirectory().getPath();
+
+		ActionsConfiguratorsManager manager = ActionsConfiguratorsManager.getInstance();
 		manager.addMainMenuConfigurator(new MainMenuConfigurator(getSubmenuActions()));
+
+		ENTITY_OPTIONS = new GeneratorOptions(
+				"c:/temp/generated-src",
+				"entity",
+				"templates",
+				"{0}.java",
+				true,
+				"com.example.generated"
+		);
+
+		ENTITY_OPTIONS.setTemplateDir(pluginDir + File.separator + ENTITY_OPTIONS.getTemplateDir());
 	}
 
-	private NMAction[] getSubmenuActions()
-	{
-	   return new NMAction[]{
-			new GenerateAction("Generate"),
-	   };
+	private NMAction[] getSubmenuActions() {
+		return new NMAction[] { new GenerateAction("Generate") };
 	}
-	
-	public boolean close() {
-		return true;
-	}
-	
-	public boolean isSupported() {				
-		return true;
-	}
+
+	@Override public boolean close() { return true; }
+	@Override public boolean isSupported() { return true; }
 }
-
-
