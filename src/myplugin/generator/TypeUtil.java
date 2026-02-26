@@ -1,7 +1,10 @@
 package myplugin.generator;
 
+import myplugin.util.UsedInTemplate;
+
 public class TypeUtil {
 
+    @UsedInTemplate({"entity.ftl"})
     public String toJava(String umlTypeName) {
         if (umlTypeName == null) return "Object";
         String t = umlTypeName.trim().toLowerCase();
