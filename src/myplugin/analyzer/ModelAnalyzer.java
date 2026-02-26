@@ -53,7 +53,7 @@ public class ModelAnalyzer {
 	private void processPackage(Package pack, String packageOwner) throws AnalyzeException {
 		//Recursive procedure that extracts data from package elements and stores it in the 
 		// intermediate data structure
-		
+
 		if (pack.getName() == null) throw  
 			new AnalyzeException("Packages must have names!");
 		
@@ -139,7 +139,7 @@ public class ModelAnalyzer {
 			if (literal.getName() == null)  
 				throw new AnalyzeException("Items of the enumeration " + enumeration.getName() +
 				" must have names!");
-			fmEnum.addValue(literal.getName());
+			fmEnum.getValues().add(literal.getName());
 		}
 		return fmEnum;
 	}	

@@ -14,8 +14,4 @@ public abstract class FMElement {
 	public FMElement(String name) {
 		this.name = name;
 	}
-
-    public Boolean hasName() {
-		return name != null;
-	}
 }
