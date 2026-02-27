@@ -32,10 +32,10 @@ public class ${clazz.name} {
     </#if>
   </#if>
   <#if p.relation>
-    <#if p.relationKind == "MANY_TO_ONE">
+    <#if p.relationKind.name() == "MANY_TO_ONE">
     @ManyToOne
     private ${p.targetClass} ${p.name};
-    <#elseif p.relationKind == "ONE_TO_MANY">
+    <#elseif p.relationKind.name() == "ONE_TO_MANY">
     <#if p.mappedBy?? && p.mappedBy?has_content>
     @OneToMany(mappedBy = "${p.mappedBy}")
       <#else>

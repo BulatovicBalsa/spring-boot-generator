@@ -15,7 +15,7 @@ public class FMProperty {
 	private boolean relation;
 	private boolean collection;
 	private String targetClass;
-	private String relationKind;
+	private RelationKind relationKind;
 	private String mappedBy;
 
 // getters/setters

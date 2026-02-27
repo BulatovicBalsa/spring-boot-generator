@@ -18,6 +18,7 @@ import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Element;
 import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Package;
 import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Property;
 import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Type;
+import myplugin.generator.fmmodel.RelationKind;
 
 /**
  * Analyzer for JPA entity generation with basic relations:
@@ -142,7 +143,7 @@ public class ModelAnalyzer {
 
 				if (!p.isCollection()) {
 					// single reference -> default MANY_TO_ONE
-					p.setRelationKind("MANY_TO_ONE");
+					p.setRelationKind(RelationKind.MANY_TO_ONE);
 					// mappedBy ne ide na ManyToOne
 					continue;
 				}
@@ -150,7 +151,7 @@ public class ModelAnalyzer {
 				// collection
 				if (opposite != null && !opposite.isCollection()) {
 					// owner has many targets, target has one owner => ONE_TO_MANY(mappedBy=opposite.name)
-					p.setRelationKind("ONE_TO_MANY");
+					p.setRelationKind(RelationKind.ONE_TO_MANY);
 					p.setMappedBy(opposite.getName());
 
 					// na drugoj strani, ako još nije označeno kao relation, označi kao MANY_TO_ONE
@@ -158,10 +159,10 @@ public class ModelAnalyzer {
 						opposite.setRelation(true);
 						opposite.setTargetClass(owner.getName());
 					}
-					opposite.setRelationKind("MANY_TO_ONE");
+					opposite.setRelationKind(RelationKind.MANY_TO_ONE);
 				} else {
 					// unidirectional collection (bez backref-a)
-					p.setRelationKind("ONE_TO_MANY");
+					p.setRelationKind(RelationKind.ONE_TO_MANY);
 					p.setMappedBy(null); // nema mappedBy
 				}
 			}
