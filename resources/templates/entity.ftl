@@ -54,11 +54,17 @@ public class ${clazz.name} {
     <#elseif p.relationKind.name() == "MANY_TO_MANY">
       <#if p.mappedBy?? && p.mappedBy?has_content>
     @ManyToMany(mappedBy = "${p.mappedBy}")
+    private Set<${p.targetClass}> ${p.name} = new HashSet<${p.targetClass}>();
       <#else>
     @ManyToMany
-      </#if>
+    @JoinTable(
+        name = "${nameUtil.toSnakeCase(clazz.name)}_${nameUtil.toSnakeCase(p.targetClass)}",
+        joinColumns = @JoinColumn(name = "${nameUtil.toSnakeCase(clazz.name)}_id"),
+        inverseJoinColumns = @JoinColumn(name = "${nameUtil.toSnakeCase(p.targetClass)}_id")
+    )
     private Set<${p.targetClass}> ${p.name} = new HashSet<${p.targetClass}>();
     </#if>
+  </#if>
   <#else>
     @Column(name = "${nameUtil.toSnakeCase(p.name)}")
     private ${typeUtil.toJava(p.type)} ${p.name};
