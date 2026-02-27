@@ -35,7 +35,7 @@ public class ${clazz.name} {
   </#if>
   <#if p.relation>
     <#if p.relationKind.name() == "MANY_TO_ONE">
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private ${p.targetClass} ${p.name};
     <#elseif p.relationKind.name() == "ONE_TO_MANY">
       <#if p.mappedBy?? && p.mappedBy?has_content>
@@ -46,9 +46,9 @@ public class ${clazz.name} {
     private Set<${p.targetClass}> ${p.name} = new HashSet<${p.targetClass}>();
     <#elseif p.relationKind.name() == "ONE_TO_ONE">
       <#if p.mappedBy?? && p.mappedBy?has_content>
-    @OneToOne(mappedBy = "${p.mappedBy}")
+    @OneToOne(mappedBy = "${p.mappedBy}", fetch = FetchType.LAZY)
       <#else>
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
       </#if>
     private ${p.targetClass} ${p.name};
     <#elseif p.relationKind.name() == "MANY_TO_MANY">
