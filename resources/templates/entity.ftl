@@ -2,6 +2,8 @@ package ${packageName};
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.Set;
+import java.util.HashSet;
 
 @Data
 @NoArgsConstructor
@@ -36,12 +38,26 @@ public class ${clazz.name} {
     @ManyToOne
     private ${p.targetClass} ${p.name};
     <#elseif p.relationKind.name() == "ONE_TO_MANY">
-    <#if p.mappedBy?? && p.mappedBy?has_content>
+      <#if p.mappedBy?? && p.mappedBy?has_content>
     @OneToMany(mappedBy = "${p.mappedBy}")
       <#else>
     @OneToMany
       </#if>
-    private java.util.Set<${p.targetClass}> ${p.name} = new java.util.HashSet<>();
+    private Set<${p.targetClass}> ${p.name} = new HashSet<${p.targetClass}>();
+    <#elseif p.relationKind.name() == "ONE_TO_ONE">
+      <#if p.mappedBy?? && p.mappedBy?has_content>
+    @OneToOne(mappedBy = "${p.mappedBy}")
+      <#else>
+    @OneToOne
+      </#if>
+    private ${p.targetClass} ${p.name};
+    <#elseif p.relationKind.name() == "MANY_TO_MANY">
+      <#if p.mappedBy?? && p.mappedBy?has_content>
+    @ManyToMany(mappedBy = "${p.mappedBy}")
+      <#else>
+    @ManyToMany
+      </#if>
+    private Set<${p.targetClass}> ${p.name} = new HashSet<${p.targetClass}>();
     </#if>
   <#else>
     @Column(name = "${nameUtil.toSnakeCase(p.name)}")

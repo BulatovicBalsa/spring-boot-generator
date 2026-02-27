@@ -163,44 +163,118 @@ public class ModelAnalyzer {
 	private void inferRelations() {
 		for (FMClass owner : FMModel.getInstance().getClasses()) {
 			for (FMProperty p : owner.getProperties()) {
+
 				FMClass target = fmClassByName.get(p.getType());
 				if (target == null) {
-					continue;
+					continue; // not a relation to another class in the model
 				}
 
-				// ovo je relacija
 				p.setRelation(true);
 				p.setTargetClass(target.getName());
 
-				// nađi opposite property u target klasi (prvi koji pokazuje nazad na owner)
 				FMProperty opposite = findOpposite(target, owner.getName());
 
-				if (!p.isCollection()) {
-					// single reference -> default MANY_TO_ONE
-					p.setRelationKind(RelationKind.MANY_TO_ONE);
-					// mappedBy ne ide na ManyToOne
-					continue;
-				}
+				boolean aMany = p.isCollection();
+				boolean bExists = (opposite != null);
+				boolean bMany = bExists && opposite.isCollection();
 
-				// collection
-				if (opposite != null && !opposite.isCollection()) {
-					// owner has many targets, target has one owner => ONE_TO_MANY(mappedBy=opposite.name)
+				// 1) MANY_TO_ONE / ONE_TO_MANY
+				// A: many, B: one  => A is ONE_TO_MANY, B is MANY_TO_ONE
+				if (aMany && bExists && !bMany) {
 					p.setRelationKind(RelationKind.ONE_TO_MANY);
 					p.setMappedBy(opposite.getName());
 
-					// na drugoj strani, ako još nije označeno kao relation, označi kao MANY_TO_ONE
-					if (!opposite.isRelation()) {
-						opposite.setRelation(true);
-						opposite.setTargetClass(owner.getName());
+					markAsManyToOne(opposite, owner);
+					continue;
+				}
+
+				// A: one, B: many  => A is MANY_TO_ONE, B is ONE_TO_MANY(mappedBy=A)
+				if (!aMany && bExists && bMany) {
+					p.setRelationKind(RelationKind.MANY_TO_ONE);
+					// opposite side already has collection, so it will be ONE_TO_MANY(mappedBy=p.name)
+					opposite.setRelation(true);
+					opposite.setTargetClass(owner.getName());
+					opposite.setRelationKind(RelationKind.ONE_TO_MANY);
+					opposite.setMappedBy(p.getName());
+					continue;
+				}
+
+				// 2) ONE_TO_ONE
+				// A: one, B: one  => ONE_TO_ONE, ownership by class name
+				if (!aMany && bExists) {
+					p.setRelationKind(RelationKind.ONE_TO_ONE);
+
+					// ownership: lexicographic order of class names (deterministic)
+					boolean ownerIsOwningSide = isOwningSide(owner.getName(), target.getName());
+					if (!ownerIsOwningSide) {
+						// inverse side
+						p.setMappedBy(opposite.getName());
+					} else {
+						p.setMappedBy(null); // owning side
 					}
-					opposite.setRelationKind(RelationKind.MANY_TO_ONE);
+
+					// set opposite side symmetrically
+					opposite.setRelation(true);
+					opposite.setTargetClass(owner.getName());
+					opposite.setRelationKind(RelationKind.ONE_TO_ONE);
+
+					if (ownerIsOwningSide) {
+						opposite.setMappedBy(p.getName()); // opposite is inverse
+					} else {
+						opposite.setMappedBy(null); // opposite is owning
+					}
+					continue;
+				}
+
+				// 3) MANY_TO_MANY
+				// A: many, B: many => MANY_TO_MANY, ownership by class name
+				if (aMany && bExists) {
+					p.setRelationKind(RelationKind.MANY_TO_MANY);
+
+					boolean ownerIsOwningSide = isOwningSide(owner.getName(), target.getName());
+					if (!ownerIsOwningSide) {
+						p.setMappedBy(opposite.getName()); // inverse
+					} else {
+						p.setMappedBy(null); // owning
+					}
+
+					// setuj opposite side symmetrically
+					opposite.setRelation(true);
+					opposite.setTargetClass(owner.getName());
+					opposite.setRelationKind(RelationKind.MANY_TO_MANY);
+
+					if (ownerIsOwningSide) {
+						opposite.setMappedBy(p.getName()); // opposite inverse
+					} else {
+						opposite.setMappedBy(null); // opposite owning
+					}
+					continue;
+				}
+
+				// 4) Unidirectional cases (no opposite)
+				if (!aMany) {
+					// single reference without opposite -> default MANY_TO_ONE
+					p.setRelationKind(RelationKind.MANY_TO_ONE);
+					p.setMappedBy(null);
 				} else {
-					// unidirectional collection (bez backref-a)
+					// collection without opposite -> default ONE_TO_MANY (unidirectional)
 					p.setRelationKind(RelationKind.ONE_TO_MANY);
-					p.setMappedBy(null); // nema mappedBy
+					p.setMappedBy(null);
 				}
 			}
 		}
+	}
+
+	private void markAsManyToOne(FMProperty opposite, FMClass owner) {
+		opposite.setRelation(true);
+		opposite.setTargetClass(owner.getName());
+		opposite.setRelationKind(RelationKind.MANY_TO_ONE);
+		opposite.setMappedBy(null);
+	}
+
+	private boolean isOwningSide(String classA, String classB) {
+		// owning side = class with lexicographically smaller name (deterministic)
+		return classA.compareTo(classB) < 0;
 	}
 
 	private FMProperty findOpposite(FMClass targetClass, String ownerClassName) {
