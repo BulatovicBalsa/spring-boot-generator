@@ -1,9 +1,13 @@
 package myplugin.analyzer;
 
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.*;
+import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Class;
+import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Package;
 import com.nomagic.uml2.ext.magicdraw.mdprofiles.Stereotype;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,14 +15,10 @@ import myplugin.generator.fmmodel.FMClass;
 import myplugin.generator.fmmodel.FMModel;
 import myplugin.generator.fmmodel.FMProperty;
 
-import com.nomagic.uml2.ext.jmi.helpers.ModelHelper;
 import com.nomagic.uml2.ext.jmi.helpers.StereotypesHelper;
-import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Class;
-import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Element;
-import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Package;
-import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Property;
-import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Type;
 import myplugin.generator.fmmodel.RelationKind;
+
+import static myplugin.generator.StringUtil.*;
 
 /**
  * Analyzer for JPA entity generation with basic relations:
@@ -73,48 +73,82 @@ public class ModelAnalyzer {
 		}
 	}
 
+	private void addPropertiesFromClassMembers(Class cl, FMClass fmClass) throws AnalyzeException {
+		Set<String> seen = new HashSet<>();
+		for (Property p : cl.getOwnedAttribute()) {
+			String key = propertyKey(p);
+			if (!seen.contains(key)) {
+				seen.add(key);
+				fmClass.getProperties().add(getPropertyData(p, cl));
+			}		}
+	}
+
 	private FMClass getClassData(Class cl) throws AnalyzeException {
 		if (cl.getName() == null) {
 			throw new AnalyzeException("Classes must have names!");
 		}
 
 		FMClass fmClass = new FMClass(cl.getName());
-
-		Iterator<Property> it = ModelHelper.attributes(cl);
-		while (it.hasNext()) {
-			Property p = it.next();
-			FMProperty prop = getPropertyData(p, cl);
-			fmClass.getProperties().add(prop);
-		}
+		addPropertiesFromClassMembers(cl, fmClass);
 		return fmClass;
 	}
 
 	private FMProperty getPropertyData(Property p, Class cl) throws AnalyzeException {
-		String attName = p.getName();
-		if (attName == null) {
-			throw new AnalyzeException("Properties of the class: " + cl.getName() + " must have names!");
-		}
+		String n = (isNullOrEmpty(p.getName())) ? "<unnamed>" : p.getName();
 
 		Type attType = p.getType();
 		if (attType == null) {
-			throw new AnalyzeException("Property " + cl.getName() + "." + attName + " must have type!");
+			throw new AnalyzeException("Property " + cl.getName() + "." + n + " must have type!");
 		}
 
 		String typeName = attType.getName();
 		if (typeName == null) {
-			throw new AnalyzeException("Type of the property " + cl.getName() + "." + attName + " must have name!");
+			throw new AnalyzeException("Type of the property " + cl.getName() + "." + n + " must have name!");
 		}
-
-		boolean isId = StereotypesHelper.getAppliedStereotypeByString(p, "Id") != null
-				|| "id".equalsIgnoreCase(attName);
 
 		// Multiplicity: upper == -1 => *, upper > 1 => collection
 		int upper = p.getUpper();
 		boolean isCollection = (upper == -1 || upper > 1);
 
+		// 1) role name (attribute/association end name)
+		String attName = p.getName();
+
+		// 2) if role name is empty, try association name
+		if (isNullOrEmpty(attName)) {
+			Association assoc = p.getAssociation();
+			if (assoc != null && !isNullOrEmpty(assoc.getName())) {
+				attName = assoc.getName();
+			}
+		}
+
+		// 3) last fallback: make name from type (Course -> course, Student[*] -> students)
+		if (isNullOrEmpty(attName)) {
+			attName = decapitalize(typeName);
+			if (isCollection) {
+				attName = pluralizeSimple(attName);
+			}
+		}
+
+		if (isNullOrEmpty(attName)) {
+			throw new AnalyzeException("Properties of the class: " + cl.getName() + " must have names!");
+		}
+
+		boolean isId = StereotypesHelper.getAppliedStereotypeByString(p, "Id") != null
+				|| "id".equalsIgnoreCase(attName);
+
 		FMProperty fp = new FMProperty(attName, typeName, isId);
 		fp.setCollection(isCollection);
 		return fp;
+	}
+
+	private String propertyKey(Property p) {
+		String id = p.getID();
+		if (id != null) return id;
+
+		String n = p.getName();
+		String t = (p.getType() != null) ? p.getType().getName() : "";
+		String a = (p.getAssociation() != null && p.getAssociation().getName() != null) ? p.getAssociation().getName() : "";
+		return (n == null ? "" : n) + "|" + t + "|" + a + "|" + System.identityHashCode(p);
 	}
 
 	/**
