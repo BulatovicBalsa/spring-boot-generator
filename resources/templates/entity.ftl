@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "${tableName}")
+@Table(name = "${nameUtil.toSnakeCase(clazz.name)}")
 public class ${clazz.name} {
 <#if !hasId>
   <#if idStrategy?string == "LONG_IDENTITY">
@@ -30,6 +30,7 @@ public class ${clazz.name} {
     @GeneratedValue
     </#if>
   </#if>
+    @Column(name = "${nameUtil.toSnakeCase(p.name)}")
     private ${typeUtil.toJava(p.type)} ${p.name};
 </#list>
 }

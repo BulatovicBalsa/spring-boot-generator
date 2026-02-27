@@ -12,6 +12,7 @@ import myplugin.generator.options.GeneratorOptions;
 public class EntityGenerator extends BasicGenerator {
 
     private final TypeUtil typeUtil = new TypeUtil();
+    private final NameUtil nameUtil = new NameUtil();
 
     public EntityGenerator(GeneratorOptions options) {
         super(options);
@@ -30,9 +31,9 @@ public class EntityGenerator extends BasicGenerator {
             model.put("clazz", clazz);
             model.put("props", clazz.getProperties());
             model.put("typeUtil", typeUtil);
-            model.put("tableName", toTableName(clazz.getName()));
             model.put("hasId", clazz.hasId());
             model.put("idStrategy", generatorOptions.getIdStrategy());
+            model.put("nameUtil", nameUtil);
 
             try {
                 getTemplate().process(model, out);
@@ -42,17 +43,5 @@ public class EntityGenerator extends BasicGenerator {
                 out.close();
             }
         }
-    }
-
-    private String toTableName(String className) {
-        StringBuilder sb = new StringBuilder();
-
-        for (int i = 0; i < className.length(); i++) {
-            char c = className.charAt(i);
-            if (Character.isUpperCase(c) && i > 0) sb.append('_');
-            sb.append(Character.toLowerCase(c));
-        }
-
-        return sb.toString();
     }
 }
