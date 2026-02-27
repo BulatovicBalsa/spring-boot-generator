@@ -12,6 +12,14 @@ public class FMProperty {
 	private String type; // UML type name, e.g. "String", "int", "Date"
 	private boolean id;
 
+	private boolean relation;
+	private boolean collection;
+	private String targetClass;
+	private String relationKind;
+	private String mappedBy;
+
+// getters/setters
+
 	public FMProperty(String name, String type, boolean id) {
 		this.name = name;
 		this.type = type;

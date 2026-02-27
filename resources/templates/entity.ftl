@@ -19,6 +19,7 @@ public class ${clazz.name} {
     @GeneratedValue
     private java.util.UUID id;
   </#if>
+
 </#if>
 <#list props as p>
   <#if p.id>
@@ -30,7 +31,22 @@ public class ${clazz.name} {
     @GeneratedValue
     </#if>
   </#if>
+  <#if p.relation>
+    <#if p.relationKind == "MANY_TO_ONE">
+    @ManyToOne
+    private ${p.targetClass} ${p.name};
+    <#elseif p.relationKind == "ONE_TO_MANY">
+    <#if p.mappedBy?? && p.mappedBy?has_content>
+    @OneToMany(mappedBy = "${p.mappedBy}")
+      <#else>
+    @OneToMany
+      </#if>
+    private java.util.Set<${p.targetClass}> ${p.name} = new java.util.HashSet<>();
+    </#if>
+  <#else>
     @Column(name = "${nameUtil.toSnakeCase(p.name)}")
     private ${typeUtil.toJava(p.type)} ${p.name};
+  </#if>
+
 </#list>
 }

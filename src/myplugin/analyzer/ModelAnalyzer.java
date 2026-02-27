@@ -1,6 +1,8 @@
 package myplugin.analyzer;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import com.nomagic.uml2.ext.magicdraw.mdprofiles.Stereotype;
 import lombok.Getter;
@@ -18,10 +20,11 @@ import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Property;
 import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Type;
 
 /**
- * Minimal analyzer for JPA entity generation (no relations).
- * - Collects UML Classes and their attributes into FMModel
- * - Uses fixed java package (filePackage)
- * - Traverses only packages stereotyped as BusinessApp (kept from old logic)
+ * Analyzer for JPA entity generation with basic relations:
+ * - MANY_TO_ONE and ONE_TO_MANY(mappedBy=...)
+
+ * Relations are inferred from attributes whose type is another UML Class in the model.
+ * Multiplicity upper is used to detect collections.
  */
 @Getter
 @Setter
@@ -29,45 +32,42 @@ public class ModelAnalyzer {
 
 	private final Package root;
 
+	private final Map<String, FMClass> fmClassByName = new HashMap<>();
+
 	public ModelAnalyzer(Package root) {
 		this.root = root;
 	}
 
 	public void prepareModel() throws AnalyzeException {
 		FMModel.getInstance().getClasses().clear();
-		// Enumerations not used in this phase
 		if (FMModel.getInstance().getEnumerations() != null) {
 			FMModel.getInstance().getEnumerations().clear();
 		}
+		fmClassByName.clear();
 
-		// fixed package for generated code
 		processPackage(root);
+
+		for (FMClass c : FMModel.getInstance().getClasses()) {
+			fmClassByName.put(c.getName(), c);
+		}
+
+		// 2) determine relations MANY_TO_ONE / ONE_TO_MANY(mappedBy)
+		inferRelations();
 	}
 
 	private void processPackage(Package pack) throws AnalyzeException {
 		if (pack.getName() == null) {
 			throw new AnalyzeException("Packages must have names!");
 		}
-
 		if (!pack.hasOwnedElement()) return;
 
-		// 1) Extract classes from this package
+		// Extract classes
 		for (Element ownedElement : pack.getOwnedElement()) {
 			if (ownedElement instanceof Stereotype) continue;
 			if (ownedElement instanceof Class) {
 				Class cl = (Class) ownedElement;
-				FMClass fmClass = getClassData(cl); // <-- fixed package
+				FMClass fmClass = getClassData(cl);
 				FMModel.getInstance().getClasses().add(fmClass);
-			}
-		}
-
-		// 2) Recurse into child packages that are marked as BusinessApp
-		for (Element ownedElement : pack.getOwnedElement()) {
-			if (ownedElement instanceof Package) {
-				Package ownedPackage = (Package) ownedElement;
-				if (StereotypesHelper.getAppliedStereotypeByString(ownedPackage, "BusinessApp") != null) {
-					processPackage(ownedPackage);
-				}
 			}
 		}
 	}
@@ -107,6 +107,73 @@ public class ModelAnalyzer {
 		boolean isId = StereotypesHelper.getAppliedStereotypeByString(p, "Id") != null
 				|| "id".equalsIgnoreCase(attName);
 
-        return new FMProperty(attName, typeName, isId);
+		// Multiplicity: upper == -1 => *, upper > 1 => collection
+		int upper = p.getUpper();
+		boolean isCollection = (upper == -1 || upper > 1);
+
+		FMProperty fp = new FMProperty(attName, typeName, isId);
+		fp.setCollection(isCollection);
+		return fp;
+	}
+
+	/**
+	 * Infer MANY_TO_ONE and ONE_TO_MANY based on:
+	 * - Property type is another class in the model => relation
+	 * - collection flag tells if it's plural
+	 * - If A has collection of B AND B has single A => OneToMany/ManyToOne with mappedBy
+	 * - Otherwise:
+	 *   - single reference => MANY_TO_ONE (default)
+	 *   - collection without backref => ONE_TO_MANY without mappedBy (unidirectional)
+	 */
+	private void inferRelations() {
+		for (FMClass owner : FMModel.getInstance().getClasses()) {
+			for (FMProperty p : owner.getProperties()) {
+				FMClass target = fmClassByName.get(p.getType());
+				if (target == null) {
+					continue;
+				}
+
+				// ovo je relacija
+				p.setRelation(true);
+				p.setTargetClass(target.getName());
+
+				// nađi opposite property u target klasi (prvi koji pokazuje nazad na owner)
+				FMProperty opposite = findOpposite(target, owner.getName());
+
+				if (!p.isCollection()) {
+					// single reference -> default MANY_TO_ONE
+					p.setRelationKind("MANY_TO_ONE");
+					// mappedBy ne ide na ManyToOne
+					continue;
+				}
+
+				// collection
+				if (opposite != null && !opposite.isCollection()) {
+					// owner has many targets, target has one owner => ONE_TO_MANY(mappedBy=opposite.name)
+					p.setRelationKind("ONE_TO_MANY");
+					p.setMappedBy(opposite.getName());
+
+					// na drugoj strani, ako još nije označeno kao relation, označi kao MANY_TO_ONE
+					if (!opposite.isRelation()) {
+						opposite.setRelation(true);
+						opposite.setTargetClass(owner.getName());
+					}
+					opposite.setRelationKind("MANY_TO_ONE");
+				} else {
+					// unidirectional collection (bez backref-a)
+					p.setRelationKind("ONE_TO_MANY");
+					p.setMappedBy(null); // nema mappedBy
+				}
+			}
+		}
+	}
+
+	private FMProperty findOpposite(FMClass targetClass, String ownerClassName) {
+		for (FMProperty tp : targetClass.getProperties()) {
+			if (ownerClassName.equals(tp.getType())) {
+				return tp;
+			}
+		}
+		return null;
 	}
 }
