@@ -34,6 +34,7 @@ public class EntityGenerator extends BasicGenerator {
             model.put("hasId", clazz.hasId());
             model.put("idStrategy", generatorOptions.getIdStrategy());
             model.put("nameUtil", nameUtil);
+            model.put("enums", FMModel.getInstance().getEnumerations());
 
             try {
                 getTemplate().process(model, out);

@@ -11,12 +11,9 @@ import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Package;
 import com.nomagic.uml2.ext.magicdraw.mdprofiles.Stereotype;
 import lombok.Getter;
 import lombok.Setter;
-import myplugin.generator.fmmodel.FMClass;
-import myplugin.generator.fmmodel.FMModel;
-import myplugin.generator.fmmodel.FMProperty;
+import myplugin.generator.fmmodel.*;
 
 import com.nomagic.uml2.ext.jmi.helpers.StereotypesHelper;
-import myplugin.generator.fmmodel.RelationKind;
 
 import static myplugin.generator.StringUtil.*;
 
@@ -61,7 +58,17 @@ public class ModelAnalyzer {
 			throw new AnalyzeException("Packages must have names!");
 		}
 		if (!pack.hasOwnedElement()) return;
-
+		// Extract enumerations
+		for (Element ownedElement : pack.getOwnedElement()) {
+			if (ownedElement instanceof Enumeration) {
+				Enumeration en = (Enumeration) ownedElement;
+				FMEnumeration fmEnum = new FMEnumeration(en.getName(), "");
+				for (EnumerationLiteral lit : en.getOwnedLiteral()) {
+					fmEnum.getValues().add(lit.getName());
+				}
+				FMModel.getInstance().getEnumerations().add(fmEnum);
+			}
+		}
 		// Extract classes
 		for (Element ownedElement : pack.getOwnedElement()) {
 			if (ownedElement instanceof Stereotype) continue;
@@ -80,7 +87,8 @@ public class ModelAnalyzer {
 			if (!seen.contains(key)) {
 				seen.add(key);
 				fmClass.getProperties().add(getPropertyData(p, cl));
-			}		}
+			}
+		}
 	}
 
 	private FMClass getClassData(Class cl) throws AnalyzeException {
@@ -105,6 +113,8 @@ public class ModelAnalyzer {
 		if (typeName == null) {
 			throw new AnalyzeException("Type of the property " + cl.getName() + "." + n + " must have name!");
 		}
+
+		boolean isEnum = FMModel.getInstance().hasEnumeration(typeName);
 
 		// Multiplicity: upper == -1 => *, upper > 1 => collection
 		int upper = p.getUpper();
@@ -138,6 +148,7 @@ public class ModelAnalyzer {
 
 		FMProperty fp = new FMProperty(attName, typeName, isId);
 		fp.setCollection(isCollection);
+		fp.setEnumeration(isEnum);
 		return fp;
 	}
 

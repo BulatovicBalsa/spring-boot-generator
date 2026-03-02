@@ -4,6 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.util.Set;
 import java.util.HashSet;
+<#if props?filter(item -> item.enumeration)?has_content>
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+</#if>
 
 @Data
 @NoArgsConstructor
@@ -67,6 +71,9 @@ public class ${clazz.name} {
   </#if>
   <#else>
     @Column(name = "${nameUtil.toSnakeCase(p.name)}")
+    <#if p.enumeration>
+    @Enumerated(EnumType.STRING)
+    </#if>
     private ${typeUtil.toJava(p.type)} ${p.name};
   </#if>
 

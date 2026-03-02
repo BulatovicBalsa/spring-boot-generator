@@ -10,6 +10,7 @@ import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Package;
 import myplugin.analyzer.AnalyzeException;
 import myplugin.analyzer.ModelAnalyzer;
 import myplugin.generator.EntityGenerator;
+import myplugin.generator.EnumGenerator;
 
 class GenerateAction extends MDAction {
 
@@ -29,6 +30,9 @@ class GenerateAction extends MDAction {
 
 			EntityGenerator generator = new EntityGenerator(MyPlugin.ENTITY_OPTIONS);
 			generator.generate();
+
+			EnumGenerator enumGenerator = new EnumGenerator(MyPlugin.ENUM_OPTIONS);
+			enumGenerator.generate();
 
 			JOptionPane.showMessageDialog(
 					null,

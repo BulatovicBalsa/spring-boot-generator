@@ -33,5 +33,12 @@ public class FMModel {
 		return model;
 	}
 
-
+	public boolean hasEnumeration(String name) {
+		for (FMEnumeration e : getInstance().getEnumerations()) {
+			if (e.getName().equals(name)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

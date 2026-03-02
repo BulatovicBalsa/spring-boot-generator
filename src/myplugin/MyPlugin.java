@@ -12,6 +12,7 @@ import myplugin.generator.options.GeneratorOptions;
 public class MyPlugin extends com.nomagic.magicdraw.plugins.Plugin {
 
 	public static GeneratorOptions ENTITY_OPTIONS;
+	public static GeneratorOptions ENUM_OPTIONS;
 
     @Override
 	public void init() {
@@ -33,6 +34,18 @@ public class MyPlugin extends com.nomagic.magicdraw.plugins.Plugin {
 		);
 
 		ENTITY_OPTIONS.setTemplateDir(pluginDir + File.separator + ENTITY_OPTIONS.getTemplateDir());
+
+		ENUM_OPTIONS = new GeneratorOptions(
+				"c:/temp/generated-src",
+				"enum",
+				"templates",
+				"{0}.java",
+				true,
+				"com.example.generated",
+				IdStrategy.UUID
+		);
+
+		ENUM_OPTIONS.setTemplateDir(pluginDir + File.separator + ENUM_OPTIONS.getTemplateDir());
 	}
 
 	private NMAction[] getSubmenuActions() {
