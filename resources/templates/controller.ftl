@@ -1,6 +1,9 @@
 package ${packageName};
 
 import java.util.List;
+<#if idType == "UUID">
+import java.util.UUID;
+</#if>
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,13 +34,13 @@ public class ${clazz.name}Controller {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable("id") ${idType} id) {
+    public ResponseEntity<Void> delete(@PathVariable ${idType} id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<${clazz.name}> findById(@PathVariable("id") ${idType} id) {
+    public ResponseEntity<${clazz.name}> findById(@PathVariable ${idType} id) {
         ${clazz.name} found = service.findById(id);
         if (found == null) {
             return ResponseEntity.notFound().build();
