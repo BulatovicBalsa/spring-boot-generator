@@ -1,0 +1,50 @@
+package ${packageName};
+
+import java.util.List;
+<#if idType == "UUID">
+import java.util.UUID;
+</#if>
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import ${entityFqn};
+import ${repoFqn};
+
+@Service
+@Transactional
+public class ${clazz.name}ServiceCrudImpl implements I${clazz.name}ServiceCrud {
+
+    private final ${clazz.name}Repository repository;
+
+    public ${clazz.name}ServiceCrudImpl(${clazz.name}Repository repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    public ${clazz.name} create(${clazz.name} entity) {
+        return repository.save(entity);
+    }
+
+    @Override
+    public ${clazz.name} update(${clazz.name} entity) {
+        return repository.save(entity);
+    }
+
+    @Override
+    public void delete(${idType} id) {
+        repository.deleteById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ${clazz.name} findById(${idType} id) {
+        return repository.findById(id).orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<${clazz.name}> findAll() {
+        return repository.findAll();
+    }
+}

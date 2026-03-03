@@ -12,6 +12,7 @@ import myplugin.analyzer.ModelAnalyzer;
 import myplugin.generator.EntityGenerator;
 import myplugin.generator.EnumGenerator;
 import myplugin.generator.RepositoryGenerator;
+import myplugin.generator.ServiceCrudGenerator;
 
 class GenerateAction extends MDAction {
 
@@ -37,6 +38,17 @@ class GenerateAction extends MDAction {
 
 			RepositoryGenerator repoGenerator = new RepositoryGenerator(MyPlugin.REPO_OPTIONS);
 			repoGenerator.generate();
+
+			String entityPackage = MyPlugin.ENTITY_OPTIONS.getFilePackage();
+			String repoPackage = MyPlugin.REPO_OPTIONS.getFilePackage();
+
+			ServiceCrudGenerator crudInterfaceGenerator =
+					new ServiceCrudGenerator(MyPlugin.SERVICE_CRUD_OPTIONS, entityPackage, repoPackage);
+			crudInterfaceGenerator.generate();
+
+			ServiceCrudGenerator crudImplGenerator =
+					new ServiceCrudGenerator(MyPlugin.SERVICE_CRUD_IMPL_OPTIONS, entityPackage, repoPackage);
+			crudImplGenerator.generate();
 
 			JOptionPane.showMessageDialog(
 					null,
