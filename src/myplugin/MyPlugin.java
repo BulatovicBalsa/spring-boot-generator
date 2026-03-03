@@ -1,7 +1,6 @@
 package myplugin;
 
 import java.io.File;
-import javax.swing.JOptionPane;
 
 import com.nomagic.actions.NMAction;
 import com.nomagic.magicdraw.actions.ActionsConfiguratorsManager;
@@ -19,8 +18,6 @@ public class MyPlugin extends com.nomagic.magicdraw.plugins.Plugin {
 
     @Override
 	public void init() {
-		JOptionPane.showMessageDialog(null, "My Plugin init");
-
         String pluginDir = getDescriptor().getPluginDirectory().getPath();
 
 		ActionsConfiguratorsManager manager = ActionsConfiguratorsManager.getInstance();
