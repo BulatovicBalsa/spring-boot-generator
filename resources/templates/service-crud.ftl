@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.UUID;
 </#if>
 
+import ${entityFqn};
+
 public interface I${clazz.name}ServiceCrud {
 
     ${clazz.name} create(${clazz.name} entity);

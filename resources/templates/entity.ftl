@@ -1,12 +1,15 @@
 package ${packageName};
 
-import jakarta.persistence.*;
-import lombok.*;
 import java.util.Set;
 import java.util.HashSet;
-<#if props?filter(item -> item.enumeration)?has_content>
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+<#if imports??>
+<#list imports as i>
+import ${i};
+</#list>
 </#if>
 
 @Data

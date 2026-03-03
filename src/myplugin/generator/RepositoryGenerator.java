@@ -5,6 +5,7 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
+import myplugin.MyPlugin;
 import myplugin.generator.fmmodel.FMClass;
 import myplugin.generator.fmmodel.FMModel;
 import myplugin.generator.options.GeneratorOptions;
@@ -32,6 +33,7 @@ public class RepositoryGenerator extends BasicGenerator {
             model.put("clazz", clazz);
             model.put("idType", idType);
             model.put("typeUtil", typeUtil);
+            model.put("entityPackage", MyPlugin.ENTITY_OPTIONS.getFilePackage());
 
             try {
                 getTemplate().process(model, out);

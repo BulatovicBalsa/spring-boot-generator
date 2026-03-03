@@ -30,7 +30,7 @@ public class MyPlugin extends com.nomagic.magicdraw.plugins.Plugin {
 			"templates",
 			"{0}.java",
 			true,
-			"com.example.generated",
+			"com.example.generated.domain",
 			IdStrategy.UUID
 		);
 
@@ -42,7 +42,7 @@ public class MyPlugin extends com.nomagic.magicdraw.plugins.Plugin {
 			"templates",
 			"{0}.java",
 			true,
-			"com.example.generated",
+			"com.example.generated.enumeration",
 			IdStrategy.UUID
 		);
 
