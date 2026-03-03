@@ -7,12 +7,9 @@ import java.util.Map;
 
 import myplugin.generator.fmmodel.FMClass;
 import myplugin.generator.fmmodel.FMModel;
-import myplugin.generator.fmmodel.FMProperty;
 import myplugin.generator.options.GeneratorOptions;
 
 public class ServiceCrudGenerator extends BasicGenerator {
-
-    private final TypeUtil typeUtil = new TypeUtil();
 
     private final String entityPackage;
     private final String repositoryPackage;
@@ -30,7 +27,7 @@ public class ServiceCrudGenerator extends BasicGenerator {
         boolean generatingInterface = isInterfaceTemplate(generatorOptions.getTemplateName());
 
         for (FMClass clazz : FMModel.getInstance().getClasses()) {
-            String idType = resolveIdType(clazz);
+            String idType = clazz.resolveIdType(generatorOptions);
 
             String fileNamePart;
             if (generatingInterface) {
@@ -64,28 +61,5 @@ public class ServiceCrudGenerator extends BasicGenerator {
 
     private boolean isInterfaceTemplate(String templateName) {
         return "service-crud".equals(templateName);
-    }
-
-    private String resolveIdType(FMClass clazz) {
-        FMProperty idProp = findIdProperty(clazz);
-        if (idProp != null && idProp.getType() != null) {
-            String javaType = typeUtil.toJava(idProp.getType());
-            if ("java.util.UUID".equals(javaType)) return "UUID";
-            if (javaType.indexOf('.') >= 0) {
-                return javaType.substring(javaType.lastIndexOf('.') + 1);
-            }
-            return javaType;
-        }
-
-        if (generatorOptions.getIdStrategy() == IdStrategy.UUID) return "UUID";
-        return "Long";
-    }
-
-    private FMProperty findIdProperty(FMClass clazz) {
-        if (clazz == null || clazz.getProperties() == null) return null;
-        for (FMProperty p : clazz.getProperties()) {
-            if (p != null && p.isId()) return p;
-        }
-        return null;
     }
 }
