@@ -52,6 +52,11 @@ class GenerateAction extends MDAction {
 					new ControllerGenerator(MyPlugin.CONTROLLER_OPTIONS, entityPackage, serviceCrudPackage);
 			ctrlGen.generate();
 
+			ProjectGenerator projectGenerator =
+					new ProjectGenerator(MyPlugin.PROJECT_OPTIONS.getTemplateDir(), MyPlugin.PROJECT_OPTIONS.getOutputPath());
+
+			projectGenerator.generate();
+
 			JOptionPane.showMessageDialog(
 					null,
 					"Entities generated to: " + MyPlugin.ENTITY_OPTIONS.getOutputPath() +
