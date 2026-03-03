@@ -13,11 +13,20 @@ public class ServiceCrudGenerator extends BasicGenerator {
 
     private final String entityPackage;
     private final String repositoryPackage;
+    private final String serviceCrudPackage;
 
     public ServiceCrudGenerator(GeneratorOptions options, String entityPackage, String repositoryPackage) {
         super(options);
         this.entityPackage = entityPackage;
         this.repositoryPackage = repositoryPackage;
+        this.serviceCrudPackage = null;
+    }
+
+    public ServiceCrudGenerator(GeneratorOptions options, String entityPackage, String repositoryPackage, String serviceCrudPackage) {
+        super(options);
+        this.entityPackage = entityPackage;
+        this.repositoryPackage = repositoryPackage;
+        this.serviceCrudPackage = serviceCrudPackage;
     }
 
     @Override
@@ -46,8 +55,13 @@ public class ServiceCrudGenerator extends BasicGenerator {
 
             String entityFqn = entityPackage + "." + clazz.getName();
             String repoFqn = repositoryPackage + "." + clazz.getName() + "Repository";
+            String interfaceFqn = null;
+            if (serviceCrudPackage != null) {
+                interfaceFqn = serviceCrudPackage + ".I" + clazz.getName() + "ServiceCrud";
+            }
             model.put("entityFqn", entityFqn);
             model.put("repoFqn", repoFqn);
+            model.put("interfaceFqn", interfaceFqn);
 
             try {
                 getTemplate().process(model, out);

@@ -10,6 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ${entityFqn};
 import ${repoFqn};
+<#if interfaceFqn??>
+import ${interfaceFqn};
+</#if>
 
 @Service
 @Transactional

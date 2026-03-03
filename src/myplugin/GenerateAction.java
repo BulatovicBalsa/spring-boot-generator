@@ -45,7 +45,7 @@ class GenerateAction extends MDAction {
 			crudInterfaceGenerator.generate();
 
 			ServiceCrudGenerator crudImplGenerator =
-					new ServiceCrudGenerator(MyPlugin.SERVICE_CRUD_IMPL_OPTIONS, entityPackage, repoPackage);
+					new ServiceCrudGenerator(MyPlugin.SERVICE_CRUD_IMPL_OPTIONS, entityPackage, repoPackage, serviceCrudPackage);
 			crudImplGenerator.generate();
 
 			ControllerGenerator ctrlGen =
