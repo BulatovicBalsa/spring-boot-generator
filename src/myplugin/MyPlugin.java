@@ -13,6 +13,7 @@ public class MyPlugin extends com.nomagic.magicdraw.plugins.Plugin {
 
 	public static GeneratorOptions ENTITY_OPTIONS;
 	public static GeneratorOptions ENUM_OPTIONS;
+	public static GeneratorOptions REPO_OPTIONS;
 
     @Override
 	public void init() {
@@ -24,28 +25,40 @@ public class MyPlugin extends com.nomagic.magicdraw.plugins.Plugin {
 		manager.addMainMenuConfigurator(new MainMenuConfigurator(getSubmenuActions()));
 
 		ENTITY_OPTIONS = new GeneratorOptions(
-				"c:/temp/generated-src",
-				"entity",
-				"templates",
-				"{0}.java",
-				true,
-				"com.example.generated",
-				IdStrategy.UUID
+			"c:/temp/generated-src",
+			"entity",
+			"templates",
+			"{0}.java",
+			true,
+			"com.example.generated",
+			IdStrategy.UUID
 		);
 
 		ENTITY_OPTIONS.setTemplateDir(pluginDir + File.separator + ENTITY_OPTIONS.getTemplateDir());
 
 		ENUM_OPTIONS = new GeneratorOptions(
-				"c:/temp/generated-src",
-				"enum",
-				"templates",
-				"{0}.java",
-				true,
-				"com.example.generated",
-				IdStrategy.UUID
+			"c:/temp/generated-src",
+			"enum",
+			"templates",
+			"{0}.java",
+			true,
+			"com.example.generated",
+			IdStrategy.UUID
 		);
 
 		ENUM_OPTIONS.setTemplateDir(pluginDir + File.separator + ENUM_OPTIONS.getTemplateDir());
+
+		REPO_OPTIONS = new GeneratorOptions(
+			"c:/temp/generated-src",
+			"repository",     // repository.ftl
+			"templates",
+			"{0}.java",
+			true,
+			"com.example.generated.repository",
+			IdStrategy.UUID
+		);
+
+		REPO_OPTIONS.setTemplateDir(pluginDir + File.separator + REPO_OPTIONS.getTemplateDir());
 	}
 
 	private NMAction[] getSubmenuActions() {

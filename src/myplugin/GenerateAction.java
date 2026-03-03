@@ -11,6 +11,7 @@ import myplugin.analyzer.AnalyzeException;
 import myplugin.analyzer.ModelAnalyzer;
 import myplugin.generator.EntityGenerator;
 import myplugin.generator.EnumGenerator;
+import myplugin.generator.RepositoryGenerator;
 
 class GenerateAction extends MDAction {
 
@@ -33,6 +34,9 @@ class GenerateAction extends MDAction {
 
 			EnumGenerator enumGenerator = new EnumGenerator(MyPlugin.ENUM_OPTIONS);
 			enumGenerator.generate();
+
+			RepositoryGenerator repoGenerator = new RepositoryGenerator(MyPlugin.REPO_OPTIONS);
+			repoGenerator.generate();
 
 			JOptionPane.showMessageDialog(
 					null,
