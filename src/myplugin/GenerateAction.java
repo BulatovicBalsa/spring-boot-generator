@@ -9,10 +9,7 @@ import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Package;
 
 import myplugin.analyzer.AnalyzeException;
 import myplugin.analyzer.ModelAnalyzer;
-import myplugin.generator.EntityGenerator;
-import myplugin.generator.EnumGenerator;
-import myplugin.generator.RepositoryGenerator;
-import myplugin.generator.ServiceCrudGenerator;
+import myplugin.generator.*;
 
 class GenerateAction extends MDAction {
 
@@ -41,6 +38,7 @@ class GenerateAction extends MDAction {
 
 			String entityPackage = MyPlugin.ENTITY_OPTIONS.getFilePackage();
 			String repoPackage = MyPlugin.REPO_OPTIONS.getFilePackage();
+			String serviceCrudPackage = MyPlugin.SERVICE_CRUD_OPTIONS.getFilePackage();
 
 			ServiceCrudGenerator crudInterfaceGenerator =
 					new ServiceCrudGenerator(MyPlugin.SERVICE_CRUD_OPTIONS, entityPackage, repoPackage);
@@ -49,6 +47,10 @@ class GenerateAction extends MDAction {
 			ServiceCrudGenerator crudImplGenerator =
 					new ServiceCrudGenerator(MyPlugin.SERVICE_CRUD_IMPL_OPTIONS, entityPackage, repoPackage);
 			crudImplGenerator.generate();
+
+			ControllerGenerator ctrlGen =
+					new ControllerGenerator(MyPlugin.CONTROLLER_OPTIONS, entityPackage, serviceCrudPackage);
+			ctrlGen.generate();
 
 			JOptionPane.showMessageDialog(
 					null,
