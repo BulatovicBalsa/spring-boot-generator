@@ -17,6 +17,7 @@ public class MyPlugin extends com.nomagic.magicdraw.plugins.Plugin {
 	public static GeneratorOptions SERVICE_CRUD_IMPL_OPTIONS;
 	public static GeneratorOptions CONTROLLER_OPTIONS;
 	public static GeneratorOptions PROJECT_OPTIONS;
+	public static GeneratorOptions APPLICATION_OPTIONS;
 
     @Override
 	public void init() {
@@ -25,7 +26,7 @@ public class MyPlugin extends com.nomagic.magicdraw.plugins.Plugin {
 		ActionsConfiguratorsManager manager = ActionsConfiguratorsManager.getInstance();
 		manager.addMainMenuConfigurator(new MainMenuConfigurator(getSubmenuActions()));
 
-		String outputBasePath = "c:/temp/src";
+		String outputBasePath = "c:/temp/src/main/java";
 
 		ENTITY_OPTIONS = new GeneratorOptions(
 			outputBasePath,
@@ -110,6 +111,18 @@ public class MyPlugin extends com.nomagic.magicdraw.plugins.Plugin {
 		);
 
 		PROJECT_OPTIONS.setTemplateDir(pluginDir + File.separator + PROJECT_OPTIONS.getTemplateDir());
+
+		APPLICATION_OPTIONS = new GeneratorOptions(
+			outputBasePath,
+			"application",
+			"templates",
+			"{0}.java",
+			true,
+			"com.example.generated",
+			IdStrategy.UUID
+		);
+
+		APPLICATION_OPTIONS.setTemplateDir(pluginDir + File.separator + APPLICATION_OPTIONS.getTemplateDir());
 	}
 
 	private NMAction[] getSubmenuActions() {

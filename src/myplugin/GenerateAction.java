@@ -57,6 +57,9 @@ class GenerateAction extends MDAction {
 
 			projectGenerator.generate();
 
+			ApplicationGenerator appGenerator = new ApplicationGenerator(MyPlugin.APPLICATION_OPTIONS);
+			appGenerator.generate();
+
 			JOptionPane.showMessageDialog(
 					null,
 					"Entities generated to: " + MyPlugin.ENTITY_OPTIONS.getOutputPath() +
