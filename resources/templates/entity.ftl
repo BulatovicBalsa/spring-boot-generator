@@ -53,7 +53,7 @@ public class ${clazz.name} {
     private Set<${p.targetClass}> ${p.name} = new HashSet<${p.targetClass}>();
     <#elseif p.relationKind.name() == "ONE_TO_ONE">
       <#if p.mappedBy?? && p.mappedBy?has_content>
-    @OneToOne(mappedBy = "${p.mappedBy}", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "${p.mappedBy}")
       <#else>
     @OneToOne(fetch = FetchType.LAZY)
       </#if>
