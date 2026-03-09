@@ -22,6 +22,7 @@ class GenerateAction extends MDAction {
 		if (Application.getInstance().getProject() == null) return;
 		Package root = Application.getInstance().getProject().getModel();
 		if (root == null) return;
+		if (!GenerationSettingsDialog.configure(null)) return;
 
 		try {
 			ModelAnalyzer analyzer = new ModelAnalyzer(root);
