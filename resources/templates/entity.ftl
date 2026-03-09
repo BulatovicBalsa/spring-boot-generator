@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.HashSet;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 <#if imports??>
@@ -42,7 +43,13 @@ public class ${clazz.name} {
   </#if>
   <#if p.relation>
     <#if p.relationKind.name() == "MANY_TO_ONE">
+    <#if p.nullable?? && !p.nullable>
+    @NotNull
+    </#if>
     @ManyToOne(fetch = FetchType.LAZY)
+    <#if p.nullable?? || p.unique??>
+    @JoinColumn(<#if p.nullable??>nullable = ${p.nullable?c}</#if><#if p.unique??><#if p.nullable??>, </#if>unique = ${p.unique?c}</#if>)
+    </#if>
     private ${p.targetClass} ${p.name};
     <#elseif p.relationKind.name() == "ONE_TO_MANY">
       <#if p.mappedBy?? && p.mappedBy?has_content>
@@ -52,10 +59,16 @@ public class ${clazz.name} {
       </#if>
     private Set<${p.targetClass}> ${p.name} = new HashSet<${p.targetClass}>();
     <#elseif p.relationKind.name() == "ONE_TO_ONE">
+      <#if p.nullable?? && !p.nullable>
+    @NotNull
+      </#if>
       <#if p.mappedBy?? && p.mappedBy?has_content>
     @OneToOne(mappedBy = "${p.mappedBy}")
       <#else>
     @OneToOne(fetch = FetchType.LAZY)
+    <#if p.nullable?? || p.unique??>
+    @JoinColumn(<#if p.nullable??>nullable = ${p.nullable?c}</#if><#if p.unique??><#if p.nullable??>, </#if>unique = ${p.unique?c}</#if>)
+    </#if>
       </#if>
     private ${p.targetClass} ${p.name};
     <#elseif p.relationKind.name() == "MANY_TO_MANY">
@@ -73,7 +86,24 @@ public class ${clazz.name} {
     </#if>
   </#if>
   <#else>
-    @Column(name = "${nameUtil.toSnakeCase(p.name)}")
+    <#if p.nullable?? && !p.nullable>
+    @NotNull
+    </#if>
+    <#if p.size?? && typeUtil.toJava(p.type) == "String">
+    @Size(max = ${p.size})
+    </#if>
+    <#if p.minValue??>
+    @DecimalMin("${p.minValue}")
+    </#if>
+    <#if p.maxValue??>
+    @DecimalMax("${p.maxValue}")
+    </#if>
+    @Column(
+        name = "${nameUtil.toSnakeCase(p.name)}"<#if p.nullable??>,
+        nullable = ${p.nullable?c}</#if><#if p.unique??>,
+        unique = ${p.unique?c}</#if><#if p.size?? && typeUtil.toJava(p.type) == "String">,
+        length = ${p.size}</#if>
+    )
     <#if p.enumeration>
     @Enumerated(EnumType.STRING)
     </#if>

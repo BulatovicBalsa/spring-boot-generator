@@ -20,6 +20,13 @@ public class FMProperty {
 	private RelationKind relationKind;
 	private String mappedBy;
 
+	// Optional tagged-value driven constraints
+	private Boolean nullable;
+	private Boolean unique;
+	private Integer size;
+	private String minValue;
+	private String maxValue;
+
 // getters/setters
 
 	public FMProperty(String name, String type, boolean id) {

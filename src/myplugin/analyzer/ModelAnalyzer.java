@@ -2,6 +2,7 @@ package myplugin.analyzer;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -149,7 +150,99 @@ public class ModelAnalyzer {
 		FMProperty fp = new FMProperty(attName, typeName, isId);
 		fp.setCollection(isCollection);
 		fp.setEnumeration(isEnum);
+		applyTaggedValueConstraints(p, fp);
 		return fp;
+	}
+
+	private void applyTaggedValueConstraints(Property source, FMProperty target) {
+		applyTaggedValuesFromStereotype(source, target, "Validation");
+		applyTaggedValuesFromStereotype(source, target, "validation");
+		applyTaggedValuesFromStereotype(source, target, "Constraints");
+		applyTaggedValuesFromStereotype(source, target, "constraints");
+		applyTaggedValuesFromStereotype(source, target, "Column");
+		applyTaggedValuesFromStereotype(source, target, "column");
+	}
+
+	private void applyTaggedValuesFromStereotype(Property source, FMProperty target, String stereotypeName) {
+		Stereotype stereotype = StereotypesHelper.getAppliedStereotypeByString(source, stereotypeName);
+		if (stereotype == null) return;
+
+		for (Property tag : stereotype.getOwnedAttribute()) {
+			List<?> values = StereotypesHelper.getStereotypePropertyValue(source, stereotype, tag.getName());
+			if (values == null || values.isEmpty()) continue;
+			Object raw = values.get(0);
+			mapTagValueToConstraint(tag.getName(), raw, target);
+		}
+	}
+
+	private void mapTagValueToConstraint(String rawTagName, Object rawValue, FMProperty target) {
+		if (rawTagName == null) return;
+		String tag = normalizeTagName(rawTagName);
+
+		if ("nullable".equals(tag) || "null".equals(tag) || "optional".equals(tag)) {
+			Boolean value = parseBoolean(rawValue);
+			if (value != null) target.setNullable(value);
+			return;
+		}
+
+		if ("notnull".equals(tag) || "required".equals(tag) || "mandatory".equals(tag)) {
+			Boolean value = parseBoolean(rawValue);
+			if (value != null) target.setNullable(!value);
+			return;
+		}
+
+		if ("unique".equals(tag)) {
+			Boolean value = parseBoolean(rawValue);
+			if (value != null) target.setUnique(value);
+			return;
+		}
+
+		if ("size".equals(tag) || "length".equals(tag) || "maxlength".equals(tag)) {
+			Integer value = parseInteger(rawValue);
+			if (value != null && value > 0) target.setSize(value);
+			return;
+		}
+
+		if ("min".equals(tag) || "minvalue".equals(tag) || "minimum".equals(tag)) {
+			String value = parseNumericText(rawValue);
+			if (value != null) target.setMinValue(value);
+			return;
+		}
+
+		if ("max".equals(tag) || "maxvalue".equals(tag) || "maximum".equals(tag)) {
+			String value = parseNumericText(rawValue);
+			if (value != null) target.setMaxValue(value);
+		}
+	}
+
+	private String normalizeTagName(String name) {
+		return name.toLowerCase().replace(" ", "").replace("_", "").replace("-", "");
+	}
+
+	private Boolean parseBoolean(Object value) {
+		if (value instanceof Boolean) return (Boolean) value;
+		if (value == null) return null;
+		String text = String.valueOf(value).trim().toLowerCase();
+		if ("true".equals(text) || "yes".equals(text) || "1".equals(text)) return Boolean.TRUE;
+		if ("false".equals(text) || "no".equals(text) || "0".equals(text)) return Boolean.FALSE;
+		return null;
+	}
+
+	private Integer parseInteger(Object value) {
+		if (value instanceof Number) return ((Number) value).intValue();
+		if (value == null) return null;
+		try {
+			return Integer.valueOf(String.valueOf(value).trim());
+		} catch (NumberFormatException e) {
+			return null;
+		}
+	}
+
+	private String parseNumericText(Object value) {
+		if (value == null) return null;
+		String text = String.valueOf(value).trim();
+		if (text.isEmpty()) return null;
+		return text;
 	}
 
 	private String propertyKey(Property p) {
