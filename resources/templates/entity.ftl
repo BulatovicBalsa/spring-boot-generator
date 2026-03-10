@@ -2,6 +2,7 @@ package ${packageName};
 
 import java.util.Set;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -114,19 +115,55 @@ public class ${clazz.name} {
 </#list>
 
     public ${clazz.name}(${clazz.name}DTO dto) {
+        this(dto, true);
+    }
+
+    public ${clazz.name}(${clazz.name}DTO dto, boolean includeRelations) {
 <#if !hasId>
         this.id = dto.getId();
 </#if>
 <#list props as p>
-  <#if !p.relation>
+  <#if p.relation>
+    <#if p.collection>
+        if (includeRelations && dto.get${p.name?cap_first}() != null) {
+            this.${p.name} = new LinkedHashSet<${p.targetClass}>();
+            for (${p.targetClass}DTO item : dto.get${p.name?cap_first}()) {
+                this.${p.name}.add(new ${p.targetClass}(item, false));
+            }
+        }
+    <#else>
+        if (includeRelations && dto.get${p.name?cap_first}() != null) {
+            this.${p.name} = new ${p.targetClass}(dto.get${p.name?cap_first}(), false);
+        }
+    </#if>
+  <#else>
         this.${p.name} = dto.get${p.name?cap_first}();
   </#if>
 </#list>
     }
 
     public void updateFromDto(${clazz.name}DTO dto) {
+        updateFromDto(dto, true);
+    }
+
+    public void updateFromDto(${clazz.name}DTO dto, boolean includeRelations) {
 <#list props as p>
-  <#if !p.relation && !p.id>
+  <#if p.relation>
+    <#if !p.id>
+      <#if p.collection>
+        if (includeRelations && dto.get${p.name?cap_first}() != null) {
+            this.${p.name} = new LinkedHashSet<${p.targetClass}>();
+            for (${p.targetClass}DTO item : dto.get${p.name?cap_first}()) {
+                this.${p.name}.add(new ${p.targetClass}(item, false));
+            }
+        }
+      <#else>
+        if (includeRelations) {
+            this.${p.name} = dto.get${p.name?cap_first}() == null ? null : new ${p.targetClass}(dto.get${p.name?cap_first}(), false);
+        }
+      </#if>
+    </#if>
+  <#elseif !p.id>
         this.${p.name} = dto.get${p.name?cap_first}();
   </#if>
 </#list>

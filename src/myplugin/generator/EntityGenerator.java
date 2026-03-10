@@ -36,6 +36,10 @@ public class EntityGenerator extends BasicGenerator {
                 String t = p.getType();
                 if (t == null) continue;
 
+                if (p.isRelation() && p.getTargetClass() != null) {
+                    imports.add(MyPlugin.DTO_OPTIONS.getFilePackage() + "." + p.getTargetClass() + "DTO");
+                }
+
                 for (FMEnumeration en : FMModel.getInstance().getEnumerations()) {
                     if (t.equals(en.getName())) {
                         imports.add(enumPackage + "." + t);

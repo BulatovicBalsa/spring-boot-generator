@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import java.util.UUID;
 </#if>
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -27,7 +28,7 @@ public class ${clazz.name}Controller {
     @PostMapping
     public ResponseEntity<${clazz.name}DTO> create(@RequestBody @Valid ${clazz.name}DTO body) {
         ${clazz.name} created = service.create(new ${clazz.name}(body));
-        return ResponseEntity.ok(new ${clazz.name}DTO(created));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ${clazz.name}DTO(created));
     }
 
     @PutMapping

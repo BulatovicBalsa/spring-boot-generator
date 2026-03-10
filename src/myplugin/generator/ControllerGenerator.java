@@ -39,7 +39,7 @@ public class ControllerGenerator extends BasicGenerator {
             String serviceFqn = serviceCrudPackage + ".I" + clazz.getName() + "ServiceCrud";
 
             // /api/users, /api/order_items, itd.
-            String basePath = "/api/" + nameUtil.toSnakeCase(clazz.getName()) + "s";
+            String basePath = "/api/" + nameUtil.toPluralResourceName(clazz.getName());
 
             Map<String, Object> model = new HashMap<>();
             model.put("packageName", generatorOptions.getFilePackage());
