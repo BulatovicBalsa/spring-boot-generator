@@ -14,11 +14,13 @@ public class ControllerGenerator extends BasicGenerator {
     private final NameUtil nameUtil = new NameUtil();
 
     private final String entityPackage;
+    private final String dtoPackage;
     private final String serviceCrudPackage;
 
-    public ControllerGenerator(GeneratorOptions options, String entityPackage, String serviceCrudPackage) {
+    public ControllerGenerator(GeneratorOptions options, String entityPackage, String dtoPackage, String serviceCrudPackage) {
         super(options);
         this.entityPackage = entityPackage;
+        this.dtoPackage = dtoPackage;
         this.serviceCrudPackage = serviceCrudPackage;
     }
 
@@ -33,16 +35,18 @@ public class ControllerGenerator extends BasicGenerator {
             String idType = clazz.resolveIdType(generatorOptions);
 
             String entityFqn = entityPackage + "." + clazz.getName();
+            String dtoFqn = dtoPackage + "." + clazz.getName() + "DTO";
             String serviceFqn = serviceCrudPackage + ".I" + clazz.getName() + "ServiceCrud";
 
             // /api/users, /api/order_items, itd.
-            String basePath = "/api/" + nameUtil.toSnakeCase(clazz.getName()) + "s";
+            String basePath = "/api/" + nameUtil.toPluralResourceName(clazz.getName());
 
             Map<String, Object> model = new HashMap<>();
             model.put("packageName", generatorOptions.getFilePackage());
             model.put("clazz", clazz);
             model.put("idType", idType);
             model.put("entityFqn", entityFqn);
+            model.put("dtoFqn", dtoFqn);
             model.put("serviceFqn", serviceFqn);
             model.put("basePath", basePath);
 
