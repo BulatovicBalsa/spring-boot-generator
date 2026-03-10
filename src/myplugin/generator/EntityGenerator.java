@@ -53,6 +53,7 @@ public class EntityGenerator extends BasicGenerator {
             model.put("idStrategy", generatorOptions.getIdStrategy());
             model.put("nameUtil", nameUtil);
             model.put("enums", FMModel.getInstance().getEnumerations());
+            model.put("dtoFqn", MyPlugin.DTO_OPTIONS.getFilePackage() + "." + clazz.getName() + "DTO");
             model.put("imports", new ArrayList<>(imports));
 
             try {
