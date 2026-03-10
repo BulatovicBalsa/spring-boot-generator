@@ -6,6 +6,7 @@ import java.util.HashSet;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import ${dtoFqn};
 
 <#if imports??>
 <#list imports as i>
@@ -17,7 +18,7 @@ import ${i};
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "${nameUtil.toSnakeCase(clazz.name)}")
+@Table(name = "${nameUtil.toTableName(clazz.name)}")
 public class ${clazz.name} {
 <#if !hasId>
   <#if idStrategy?string == "LONG_IDENTITY">
@@ -78,9 +79,9 @@ public class ${clazz.name} {
       <#else>
     @ManyToMany
     @JoinTable(
-        name = "${nameUtil.toSnakeCase(clazz.name)}_${nameUtil.toSnakeCase(p.targetClass)}",
-        joinColumns = @JoinColumn(name = "${nameUtil.toSnakeCase(clazz.name)}_id"),
-        inverseJoinColumns = @JoinColumn(name = "${nameUtil.toSnakeCase(p.targetClass)}_id")
+        name = "${nameUtil.toTableName(clazz.name)}_${nameUtil.toTableName(p.targetClass)}",
+        joinColumns = @JoinColumn(name = "${nameUtil.toColumnName(clazz.name)}_id"),
+        inverseJoinColumns = @JoinColumn(name = "${nameUtil.toColumnName(p.targetClass)}_id")
     )
     private Set<${p.targetClass}> ${p.name} = new HashSet<${p.targetClass}>();
     </#if>
@@ -99,7 +100,7 @@ public class ${clazz.name} {
     @DecimalMax("${p.maxValue}")
     </#if>
     @Column(
-        name = "${nameUtil.toSnakeCase(p.name)}"<#if p.nullable??>,
+        name = "${nameUtil.toColumnName(p.name)}"<#if p.nullable??>,
         nullable = ${p.nullable?c}</#if><#if p.unique??>,
         unique = ${p.unique?c}</#if><#if p.size?? && typeUtil.toJava(p.type) == "String">,
         length = ${p.size}</#if>
@@ -111,4 +112,23 @@ public class ${clazz.name} {
   </#if>
 
 </#list>
+
+    public ${clazz.name}(${clazz.name}DTO dto) {
+<#if !hasId>
+        this.id = dto.getId();
+</#if>
+<#list props as p>
+  <#if !p.relation>
+        this.${p.name} = dto.get${p.name?cap_first}();
+  </#if>
+</#list>
+    }
+
+    public void updateFromDto(${clazz.name}DTO dto) {
+<#list props as p>
+  <#if !p.relation && !p.id>
+        this.${p.name} = dto.get${p.name?cap_first}();
+  </#if>
+</#list>
+    }
 }
