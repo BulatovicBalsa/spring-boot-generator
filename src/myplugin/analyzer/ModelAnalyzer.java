@@ -98,6 +98,12 @@ public class ModelAnalyzer {
 		}
 
 		FMClass fmClass = new FMClass(cl.getName());
+
+		Stereotype embeddableStereo = StereotypesHelper.getAppliedStereotypeByString(cl, "Embeddable");
+		if (embeddableStereo != null) {
+			fmClass.setEmbeddable(true);
+		}
+
 		addPropertiesFromClassMembers(cl, fmClass);
 		return fmClass;
 	}
@@ -273,6 +279,13 @@ public class ModelAnalyzer {
 					continue; // not a relation to another class in the model
 				}
 
+				if (target.isEmbeddable()) {
+					p.setEmbedded(true);
+					p.setRelation(false);
+					p.setTargetClass(target.getName());
+					continue;
+				}
+
 				p.setRelation(true);
 				p.setTargetClass(target.getName());
 
@@ -388,5 +401,14 @@ public class ModelAnalyzer {
 			}
 		}
 		return null;
+	}
+
+	private void classifyElementType(Class cl, FMClass fmClass) {
+		Stereotype embeddableStereo = StereotypesHelper.getAppliedStereotypeByString(cl, "Embeddable");
+		if (embeddableStereo != null) {
+			fmClass.setEmbeddable(true);
+			return;
+		}
+		fmClass.setEmbeddable(false);
 	}
 }
