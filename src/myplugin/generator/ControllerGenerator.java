@@ -27,6 +27,7 @@ public class ControllerGenerator extends BasicGenerator {
         super.generate();
 
         for (FMClass clazz : FMModel.getInstance().getClasses()) {
+            if(clazz.isEmbeddable()) continue;
             Writer out = getWriter(clazz.getName() + "Controller", generatorOptions.getFilePackage());
             if (out == null) continue;
 

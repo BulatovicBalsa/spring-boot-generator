@@ -36,6 +36,7 @@ public class ServiceCrudGenerator extends BasicGenerator {
         boolean generatingInterface = isInterfaceTemplate(generatorOptions.getTemplateName());
 
         for (FMClass clazz : FMModel.getInstance().getClasses()) {
+            if(clazz.isEmbeddable()) continue;
             String idType = clazz.resolveIdType(generatorOptions);
 
             String fileNamePart;
