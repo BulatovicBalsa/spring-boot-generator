@@ -16,6 +16,7 @@ import java.util.List;
 public class FMClass {
 	private String name;
 	private List<FMProperty> properties = new ArrayList<>();
+	private boolean embeddable = false;
 
 	public FMClass(String name) {
 		this.name = name;
