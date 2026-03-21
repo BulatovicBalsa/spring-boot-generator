@@ -32,7 +32,7 @@ public abstract class BasicGenerator {
 		this.generatorOptions = generatorOptions;
 	}
 
-	public void generate() throws IOException {		
+	public void generate() throws IOException {
 		if (generatorOptions.getOutputPath() == null) {
 			throw new IOException("Output path is not defined!");
 		}	
@@ -61,7 +61,7 @@ public abstract class BasicGenerator {
 							"An error occurred during folder creation " + generatorOptions.getOutputPath());
 			}
 		} catch (IOException e) {
-			throw new IOException("Can't find template " + tName + ".", e);
+			throw new IOException("Template error [" + tName + "]: " + e.getMessage(), e);
 		}
 
 	}
