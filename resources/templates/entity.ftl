@@ -16,10 +16,14 @@ import ${i};
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "${nameUtil.toSnakeCase(clazz.name)}")
+<#if clazz.embeddable>
+  @Embeddable
+<#else>
+  @Entity
+  @Table(name = "${nameUtil.toSnakeCase(clazz.name)}")
+</#if>
 public class ${clazz.name} {
-<#if !hasId>
+<#if !hasId && !clazz.embeddable>
   <#if idStrategy?string == "LONG_IDENTITY">
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,7 +45,11 @@ public class ${clazz.name} {
     @GeneratedValue
     </#if>
   </#if>
-  <#if p.relation>
+
+  <#if p.embedded>
+    @Embedded
+    private ${p.targetClass} ${p.name};
+  <#elseif p.relation>
     <#if p.relationKind.name() == "MANY_TO_ONE">
     <#if p.nullable?? && !p.nullable>
     @NotNull
@@ -84,7 +92,7 @@ public class ${clazz.name} {
     )
     private Set<${p.targetClass}> ${p.name} = new HashSet<${p.targetClass}>();
     </#if>
-  </#if>
+    </#if>
   <#else>
     <#if p.nullable?? && !p.nullable>
     @NotNull
