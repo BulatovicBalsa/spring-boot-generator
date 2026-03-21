@@ -15,6 +15,7 @@ public class FMProperty {
 	private boolean relation;
 	private boolean collection;
 	private boolean enumeration;
+	private boolean embedded = false;
 
 	private String targetClass;
 	private RelationKind relationKind;
