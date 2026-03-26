@@ -123,21 +123,23 @@ public class ${clazz.name} {
         this.id = dto.getId();
 </#if>
 <#list props as p>
-  <#if p.relation>
-    <#if p.collection>
+  <#if !p.hidden?? || !p.hidden>
+    <#if p.relation>
+      <#if p.collection>
         if (includeRelations && dto.get${p.name?cap_first}() != null) {
             this.${p.name} = new LinkedHashSet<${p.targetClass}>();
             for (${p.targetClass}DTO item : dto.get${p.name?cap_first}()) {
                 this.${p.name}.add(new ${p.targetClass}(item, false));
             }
         }
-    <#else>
+      <#else>
         if (includeRelations && dto.get${p.name?cap_first}() != null) {
             this.${p.name} = new ${p.targetClass}(dto.get${p.name?cap_first}(), false);
         }
-    </#if>
-  <#else>
+      </#if>
+    <#else>
         this.${p.name} = dto.get${p.name?cap_first}();
+    </#if>
   </#if>
 </#list>
     }
@@ -148,23 +150,25 @@ public class ${clazz.name} {
 
     public void updateFromDto(${clazz.name}DTO dto, boolean includeRelations) {
 <#list props as p>
-  <#if p.relation>
-    <#if !p.id>
-      <#if p.collection>
+  <#if !p.hidden?? || !p.hidden>
+    <#if p.relation>
+      <#if !p.id>
+        <#if p.collection>
         if (includeRelations && dto.get${p.name?cap_first}() != null) {
             this.${p.name} = new LinkedHashSet<${p.targetClass}>();
             for (${p.targetClass}DTO item : dto.get${p.name?cap_first}()) {
                 this.${p.name}.add(new ${p.targetClass}(item, false));
             }
         }
-      <#else>
+        <#else>
         if (includeRelations) {
             this.${p.name} = dto.get${p.name?cap_first}() == null ? null : new ${p.targetClass}(dto.get${p.name?cap_first}(), false);
         }
+        </#if>
       </#if>
-    </#if>
-  <#elseif !p.id>
+    <#elseif !p.id>
         this.${p.name} = dto.get${p.name?cap_first}();
+    </#if>
   </#if>
 </#list>
     }
