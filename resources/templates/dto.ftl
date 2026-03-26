@@ -29,17 +29,19 @@ public class ${clazz.name}DTO {
     private ${idType} id;
 </#if>
 <#list props as p>
-  <#if p.relation>
-    <#if p.collection>
+  <#if !p.hidden?? || !p.hidden>
+    <#if p.relation>
+      <#if p.collection>
     private Set<${p.targetClass}DTO> ${p.name} = new HashSet<${p.targetClass}DTO>();
-    <#else>
+      <#else>
     private ${p.targetClass}DTO ${p.name};
-    </#if>
-  <#else>
-    <#if p.name?lower_case?contains("password")>
+      </#if>
+    <#else>
+      <#if p.name?lower_case?contains("password")>
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    </#if>
+      </#if>
     private ${typeUtil.toJava(p.type)} ${p.name};
+    </#if>
   </#if>
 </#list>
 
@@ -52,21 +54,23 @@ public class ${clazz.name}DTO {
         this.id = entity.getId();
 </#if>
 <#list props as p>
-  <#if p.relation>
-    <#if p.collection>
+  <#if !p.hidden?? || !p.hidden>
+    <#if p.relation>
+      <#if p.collection>
         if (includeRelations && entity.get${p.name?cap_first}() != null) {
             for (${p.targetClass} item : entity.get${p.name?cap_first}()) {
                 this.${p.name}.add(new ${p.targetClass}DTO(item, false));
             }
         }
-    <#else>
+      <#else>
         if (includeRelations && entity.get${p.name?cap_first}() != null) {
             this.${p.name} = new ${p.targetClass}DTO(entity.get${p.name?cap_first}(), false);
         }
-    </#if>
-  <#else>
-    <#if !p.name?lower_case?contains("password")>
+      </#if>
+    <#else>
+      <#if !p.name?lower_case?contains("password")>
         this.${p.name} = entity.get${p.name?cap_first}();
+      </#if>
     </#if>
   </#if>
 </#list>
