@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${formTitle}">Form</title>
+    <style>
+        body { font-family: Segoe UI, Arial, sans-serif; margin: 24px; color: #1f2937; }
+        h1 { margin-bottom: 16px; }
+        .card { max-width: 720px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; background: white; }
+        .field { margin-bottom: 12px; }
+        .field label { display: block; margin-bottom: 6px; color: #374151; font-weight: 600; }
+        .field input { width: 100%; padding: 9px 10px; border: 1px solid #d1d5db; border-radius: 6px; }
+        .actions { margin-top: 12px; display: flex; gap: 10px; align-items: center; }
+        .btn { display: inline-block; padding: 8px 12px; text-decoration: none; background: #2563eb; color: white; border-radius: 6px; border: none; cursor: pointer; }
+        .btn-secondary { background: #6b7280; }
+        .muted { color: #6b7280; }
+    </style>
+</head>
+<body>
+<h1 th:text="${formTitle}">Form</h1>
+
+<div class="card">
+    <p class="muted" th:if="${#lists.isEmpty(fields)}">No editable fields for this entity.</p>
+
+    <form th:if="${!#lists.isEmpty(fields)}" th:action="${formAction}" method="post">
+        <div class="field" th:each="f : ${fields}">
+            <label th:for="${f['name']}" th:text="${f['label']}">Field</label>
+            <input type="text" th:id="${f['name']}" th:name="${f['name']}" th:value="${f['value']}"/>
+        </div>
+
+        <div class="actions">
+            <button type="submit" class="btn">Save</button>
+            <a class="btn btn-secondary" th:href="${basePath}">Cancel</a>
+        </div>
+    </form>
+
+    <div class="actions" th:if="${#lists.isEmpty(fields)}">
+        <a class="btn btn-secondary" th:href="${basePath}">Back</a>
+    </div>
+</div>
+</body>
+</html>

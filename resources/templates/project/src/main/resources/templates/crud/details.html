@@ -26,6 +26,10 @@
     </div>
 </div>
 
-<p class="actions"><a th:href="${basePath}">Back</a></p>
+<p class="actions">
+    <a th:href="${basePath + '/' + entry['id'] + '/edit'}">Edit</a>
+    <span> | </span>
+    <a th:href="${basePath}">Back</a>
+</p>
 </body>
 </html>

@@ -19,7 +19,11 @@
 <body>
 <h1 th:text="${entityName} + ' list'">List</h1>
 
+<p class="muted" style="color: #166534;" th:if="${flashMessage}" th:text="${flashMessage}">Saved.</p>
+<p class="muted" style="color: #b91c1c;" th:if="${flashError}" th:text="${flashError}">Error.</p>
+
 <div class="toolbar">
+    <a class="btn" th:href="${basePath + '/new'}">New</a>
     <a class="btn" th:href="${basePath}">Refresh</a>
 </div>
 
@@ -37,6 +41,12 @@
         <td th:each="cell : ${row['cells']}" th:text="${cell} ?: '-'">value</td>
         <td>
             <a th:if="${row['id'] != null}" th:href="${basePath + '/' + row['id']}">details</a>
+            <span th:if="${row['id'] != null}"> | </span>
+            <a th:if="${row['id'] != null}" th:href="${basePath + '/' + row['id'] + '/edit'}">edit</a>
+            <span th:if="${row['id'] != null}"> | </span>
+            <form th:if="${row['id'] != null}" th:action="${basePath + '/' + row['id'] + '/delete'}" method="post" style="display: inline;">
+                <button type="submit" style="background: none; border: none; color: #b91c1c; cursor: pointer; padding: 0;" onclick="return confirm('Delete this item?');">delete</button>
+            </form>
             <span th:if="${row['id'] == null}" class="muted">n/a</span>
         </td>
     </tr>
