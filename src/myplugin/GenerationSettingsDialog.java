@@ -15,6 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
+import myplugin.generator.GenerationMode;
 import myplugin.generator.IdStrategy;
 import myplugin.generator.options.GeneratorOptions;
 
@@ -46,6 +47,13 @@ public final class GenerationSettingsDialog {
         JComboBox<IdStrategy> idStrategyBox = new JComboBox<IdStrategy>(IdStrategy.values());
         idStrategyBox.setSelectedItem(idDefault);
 
+        GenerationMode modeDefault = MyPlugin.CONTROLLER_OPTIONS.getGenerationMode();
+        if (modeDefault == null) {
+            modeDefault = GenerationMode.REST_ONLY;
+        }
+        JComboBox<GenerationMode> generationModeBox = new JComboBox<GenerationMode>(GenerationMode.values());
+        generationModeBox.setSelectedItem(modeDefault);
+
         boolean overwriteDefault = isOverwriteEnabled(MyPlugin.ENTITY_OPTIONS);
         JCheckBox overwriteBox = new JCheckBox("Overwrite generated files", overwriteDefault);
 
@@ -67,6 +75,8 @@ public final class GenerationSettingsDialog {
             activePanel.add(dtoPackageField);
             activePanel.add(new JLabel("Default ID strategy:"));
             activePanel.add(idStrategyBox);
+            activePanel.add(new JLabel("Controllers generation:"));
+            activePanel.add(generationModeBox);
             activePanel.add(overwriteBox);
 
             JPanel legacyPanel = new JPanel(new GridLayout(0, 1, 6, 6));
@@ -120,6 +130,7 @@ public final class GenerationSettingsDialog {
             String basePackage = basePackageField.getText().trim();
             String dtoPackage = dtoPackageField.getText().trim();
             IdStrategy idStrategy = (IdStrategy) idStrategyBox.getSelectedItem();
+            GenerationMode generationMode = (GenerationMode) generationModeBox.getSelectedItem();
             boolean overwrite = overwriteBox.isSelected();
 
             if (isBlank(projectPath)) {
@@ -139,7 +150,7 @@ public final class GenerationSettingsDialog {
                 continue;
             }
 
-            applySettings(projectPath, javaOutputPath, basePackage, dtoPackage, idStrategy, overwrite);
+            applySettings(projectPath, javaOutputPath, basePackage, dtoPackage, idStrategy, generationMode, overwrite);
             return true;
         }
     }
@@ -150,16 +161,17 @@ public final class GenerationSettingsDialog {
             String basePackage,
             String dtoPackage,
             IdStrategy idStrategy,
+            GenerationMode generationMode,
             boolean overwrite
     ) {
-        configureCodeOptions(MyPlugin.ENTITY_OPTIONS, javaOutputPath, basePackage + ".domain", idStrategy, overwrite);
-        configureCodeOptions(MyPlugin.ENUM_OPTIONS, javaOutputPath, basePackage + ".enumeration", idStrategy, overwrite);
-        configureCodeOptions(MyPlugin.DTO_OPTIONS, javaOutputPath, dtoPackage, idStrategy, overwrite);
-        configureCodeOptions(MyPlugin.REPO_OPTIONS, javaOutputPath, basePackage + ".repository", idStrategy, overwrite);
-        configureCodeOptions(MyPlugin.SERVICE_CRUD_OPTIONS, javaOutputPath, basePackage + ".service.crud", idStrategy, overwrite);
-        configureCodeOptions(MyPlugin.SERVICE_CRUD_IMPL_OPTIONS, javaOutputPath, basePackage + ".service.crud.impl", idStrategy, overwrite);
-        configureCodeOptions(MyPlugin.CONTROLLER_OPTIONS, javaOutputPath, basePackage + ".controller", idStrategy, overwrite);
-        configureCodeOptions(MyPlugin.APPLICATION_OPTIONS, javaOutputPath, basePackage, idStrategy, overwrite);
+        configureCodeOptions(MyPlugin.ENTITY_OPTIONS, javaOutputPath, basePackage + ".domain", idStrategy, generationMode, overwrite);
+        configureCodeOptions(MyPlugin.ENUM_OPTIONS, javaOutputPath, basePackage + ".enumeration", idStrategy, generationMode, overwrite);
+        configureCodeOptions(MyPlugin.DTO_OPTIONS, javaOutputPath, dtoPackage, idStrategy, generationMode, overwrite);
+        configureCodeOptions(MyPlugin.REPO_OPTIONS, javaOutputPath, basePackage + ".repository", idStrategy, generationMode, overwrite);
+        configureCodeOptions(MyPlugin.SERVICE_CRUD_OPTIONS, javaOutputPath, basePackage + ".service.crud", idStrategy, generationMode, overwrite);
+        configureCodeOptions(MyPlugin.SERVICE_CRUD_IMPL_OPTIONS, javaOutputPath, basePackage + ".service.crud.impl", idStrategy, generationMode, overwrite);
+        configureCodeOptions(MyPlugin.CONTROLLER_OPTIONS, javaOutputPath, basePackage + ".controller", idStrategy, generationMode, overwrite);
+        configureCodeOptions(MyPlugin.APPLICATION_OPTIONS, javaOutputPath, basePackage, idStrategy, generationMode, overwrite);
 
         MyPlugin.PROJECT_OPTIONS.setOutputPath(projectPath);
     }
@@ -169,11 +181,13 @@ public final class GenerationSettingsDialog {
             String outputPath,
             String filePackage,
             IdStrategy idStrategy,
+            GenerationMode generationMode,
             boolean overwrite
     ) {
         options.setOutputPath(outputPath);
         options.setFilePackage(filePackage);
         options.setIdStrategy(idStrategy);
+        options.setGenerationMode(generationMode);
         options.setOverwrite(overwrite);
     }
 

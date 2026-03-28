@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${entityName} + ' list'">List</title>
+    <style>
+        body { font-family: Segoe UI, Arial, sans-serif; margin: 24px; color: #1f2937; }
+        h1 { margin-bottom: 16px; }
+        .toolbar { margin-bottom: 12px; }
+        .btn { display: inline-block; padding: 8px 12px; text-decoration: none; background: #2563eb; color: white; border-radius: 6px; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { padding: 10px 12px; border: 1px solid #e5e7eb; text-align: left; }
+        th { background: #f9fafb; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        .muted { color: #6b7280; }
+    </style>
+</head>
+<body>
+<h1 th:text="${entityName} + ' list'">List</h1>
+
+<div class="toolbar">
+    <a class="btn" th:href="${basePath}">Refresh</a>
+</div>
+
+<p class="muted" th:if="${#lists.isEmpty(tableRows)}">No data available.</p>
+
+<table th:if="${!#lists.isEmpty(tableRows)}">
+    <thead>
+    <tr>
+        <th th:each="col : ${columns}" th:text="${col}">column</th>
+        <th>actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="row : ${tableRows}">
+        <td th:each="cell : ${row['cells']}" th:text="${cell} ?: '-'">value</td>
+        <td>
+            <a th:if="${row['id'] != null}" th:href="${basePath + '/' + row['id']}">details</a>
+            <span th:if="${row['id'] == null}" class="muted">n/a</span>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

@@ -10,6 +10,7 @@ import com.nomagic.uml2.ext.magicdraw.classes.mdkernel.Package;
 import myplugin.analyzer.AnalyzeException;
 import myplugin.analyzer.ModelAnalyzer;
 import myplugin.generator.*;
+import myplugin.generator.options.GeneratorOptions;
 
 class GenerateAction extends MDAction {
 
@@ -52,9 +53,33 @@ class GenerateAction extends MDAction {
 					new ServiceCrudGenerator(MyPlugin.SERVICE_CRUD_IMPL_OPTIONS, entityPackage, repoPackage, serviceCrudPackage);
 			crudImplGenerator.generate();
 
-			ControllerGenerator ctrlGen =
-					new ControllerGenerator(MyPlugin.CONTROLLER_OPTIONS, entityPackage, MyPlugin.DTO_OPTIONS.getFilePackage(), serviceCrudPackage);
-			ctrlGen.generate();
+			GenerationMode mode = MyPlugin.CONTROLLER_OPTIONS.getGenerationMode();
+			if (mode == null) {
+				mode = GenerationMode.REST_ONLY;
+			}
+
+			if (mode == GenerationMode.REST_ONLY || mode == GenerationMode.REST_AND_THYMELEAF) {
+				ControllerGenerator ctrlGen =
+						new ControllerGenerator(MyPlugin.CONTROLLER_OPTIONS, entityPackage, MyPlugin.DTO_OPTIONS.getFilePackage(), serviceCrudPackage);
+				ctrlGen.generate();
+			}
+
+			if (mode == GenerationMode.THYMELEAF_ONLY || mode == GenerationMode.REST_AND_THYMELEAF) {
+				GeneratorOptions viewControllerOptions = new GeneratorOptions(
+						MyPlugin.CONTROLLER_OPTIONS.getOutputPath(),
+						"controller-view",
+						MyPlugin.CONTROLLER_OPTIONS.getTemplateDir(),
+						"{0}PageController.java",
+						MyPlugin.CONTROLLER_OPTIONS.getOverwrite(),
+						MyPlugin.CONTROLLER_OPTIONS.getFilePackage(),
+						MyPlugin.CONTROLLER_OPTIONS.getIdStrategy(),
+						mode
+				);
+
+				ViewControllerGenerator viewCtrlGen =
+						new ViewControllerGenerator(viewControllerOptions, entityPackage, MyPlugin.DTO_OPTIONS.getFilePackage(), serviceCrudPackage);
+				viewCtrlGen.generate();
+			}
 
 			ProjectGenerator projectGenerator =
 					new ProjectGenerator(MyPlugin.PROJECT_OPTIONS.getTemplateDir(), MyPlugin.PROJECT_OPTIONS.getOutputPath());
