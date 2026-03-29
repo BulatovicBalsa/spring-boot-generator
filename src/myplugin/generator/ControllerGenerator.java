@@ -46,6 +46,7 @@ public class ControllerGenerator extends BasicGenerator {
             model.put("entityFqn", entityFqn);
             model.put("serviceFqn", serviceFqn);
             model.put("basePath", basePath);
+            model.put("typeUtil", new TypeUtil());
 
             try {
                 getTemplate().process(model, out);
