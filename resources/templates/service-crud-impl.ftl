@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.UUID;
 </#if>
 
+import java.util.Optional;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,4 +52,28 @@ public class ${clazz.name}ServiceCrudImpl implements I${clazz.name}ServiceCrud {
     public List<${clazz.name}> findAll() {
         return repository.findAll();
     }
+
+<#list clazz.properties as p>
+<#if p.searchable && !p.relation && !p.embedded>
+    @Override
+    @Transactional(readOnly = true)
+<#if p.unique>
+    public Optional<${clazz.name}> findBy${p.name?cap_first}(${typeUtil.toJava(p.type)} ${p.name}) {
+    return repository.findBy${p.name?cap_first}(${p.name});
+    }
+<#else>
+    public List<${clazz.name}> findBy${p.name?cap_first}(${typeUtil.toJava(p.type)} ${p.name}) {
+    return repository.findBy${p.name?cap_first}(${p.name});
+    }
+</#if>
+</#if>
+
+<#if p.rangeQuery && !p.relation && !p.embedded>
+    @Override
+    @Transactional(readOnly = true)
+    public List<${clazz.name}> findBy${p.name?cap_first}Between(${typeUtil.toJava(p.type)} start, ${typeUtil.toJava(p.type)} end) {
+    return repository.findBy${p.name?cap_first}Between(start, end);
+    }
+</#if>
+</#list>
 }
