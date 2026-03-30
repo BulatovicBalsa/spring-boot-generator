@@ -155,6 +155,10 @@ public class ModelAnalyzer {
 	}
 
 	private void applyTaggedValueConstraints(Property source, FMProperty target) {
+		for (Stereotype stereotype : StereotypesHelper.getStereotypes(source)) {
+			applyTaggedValuesFromStereotype(source, target, stereotype);
+		}
+
 		applyTaggedValuesFromStereotype(source, target, "Validation");
 		applyTaggedValuesFromStereotype(source, target, "validation");
 		applyTaggedValuesFromStereotype(source, target, "Constraints");
@@ -163,8 +167,7 @@ public class ModelAnalyzer {
 		applyTaggedValuesFromStereotype(source, target, "column");
 	}
 
-	private void applyTaggedValuesFromStereotype(Property source, FMProperty target, String stereotypeName) {
-		Stereotype stereotype = StereotypesHelper.getAppliedStereotypeByString(source, stereotypeName);
+	private void applyTaggedValuesFromStereotype(Property source, FMProperty target, Stereotype stereotype) {
 		if (stereotype == null) return;
 
 		for (Property tag : stereotype.getOwnedAttribute()) {
@@ -173,6 +176,12 @@ public class ModelAnalyzer {
 			Object raw = values.get(0);
 			mapTagValueToConstraint(tag.getName(), raw, target);
 		}
+	}
+
+	private void applyTaggedValuesFromStereotype(Property source, FMProperty target, String stereotypeName) {
+		Stereotype stereotype = StereotypesHelper.getAppliedStereotypeByString(source, stereotypeName);
+		if (stereotype == null) return;
+		applyTaggedValuesFromStereotype(source, target, stereotype);
 	}
 
 	private void mapTagValueToConstraint(String rawTagName, Object rawValue, FMProperty target) {
@@ -212,6 +221,13 @@ public class ModelAnalyzer {
 		if ("max".equals(tag) || "maxvalue".equals(tag) || "maximum".equals(tag)) {
 			String value = parseNumericText(rawValue);
 			if (value != null) target.setMaxValue(value);
+			return;
+		}
+
+		if ("hide".equals(tag) || "internal".equals(tag) || tag.startsWith("hidden") || tag.startsWith("Hidden")) {
+			Boolean value = parseBoolean(rawValue);
+			if (value != null) target.setHidden(value);
+			return;
 		}
 	}
 

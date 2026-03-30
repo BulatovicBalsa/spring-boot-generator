@@ -37,6 +37,7 @@ public final class GenerationSettingsDialog {
             basePackageDefault = "com.example.generated";
         }
         JTextField basePackageField = new JTextField(basePackageDefault, 40);
+        JTextField dtoPackageField = new JTextField(MyPlugin.DTO_OPTIONS.getFilePackage(), 40);
 
         IdStrategy idDefault = MyPlugin.ENTITY_OPTIONS.getIdStrategy();
         if (idDefault == null) {
@@ -62,6 +63,8 @@ public final class GenerationSettingsDialog {
             activePanel.add(javaOutputField);
             activePanel.add(new JLabel("Base package namespace (for generated code):"));
             activePanel.add(basePackageField);
+            activePanel.add(new JLabel("DTO package namespace:"));
+            activePanel.add(dtoPackageField);
             activePanel.add(new JLabel("Default ID strategy:"));
             activePanel.add(idStrategyBox);
             activePanel.add(overwriteBox);
@@ -74,8 +77,6 @@ public final class GenerationSettingsDialog {
             legacyPanel.add(disabledField(basePackagePreview + ".domain"));
             legacyPanel.add(new JLabel("Enum package"));
             legacyPanel.add(disabledField(basePackagePreview + ".enumeration"));
-            legacyPanel.add(new JLabel("DTO package"));
-            legacyPanel.add(disabledField(basePackagePreview + ".dto"));
             legacyPanel.add(new JLabel("Repository package"));
             legacyPanel.add(disabledField(basePackagePreview + ".repository"));
             legacyPanel.add(new JLabel("Service package"));
@@ -90,7 +91,6 @@ public final class GenerationSettingsDialog {
             legacyPanel.add(disabledField(projectPathField.getText().trim() + "/pom.xml"));
             legacyPanel.add(new JLabel("application.properties output file"));
             legacyPanel.add(disabledField(projectPathField.getText().trim() + "/src/main/resources/application.properties"));
-            legacyPanel.add(disabledCheck("Generate DTO layer", false));
             legacyPanel.add(disabledCheck("Generate HTML views (index/edit/new)", false));
             legacyPanel.add(disabledCheck("Generate pom.xml from template", false));
             legacyPanel.add(disabledCheck("Generate application.properties from template", false));
@@ -118,6 +118,7 @@ public final class GenerationSettingsDialog {
             String projectPath = projectPathField.getText().trim();
             String javaOutputPath = javaOutputField.getText().trim();
             String basePackage = basePackageField.getText().trim();
+            String dtoPackage = dtoPackageField.getText().trim();
             IdStrategy idStrategy = (IdStrategy) idStrategyBox.getSelectedItem();
             boolean overwrite = overwriteBox.isSelected();
 
@@ -133,8 +134,12 @@ public final class GenerationSettingsDialog {
                 showValidation(parent, "Base package is not valid (example: com.example.generated).");
                 continue;
             }
+            if (!isValidPackage(dtoPackage)) {
+                showValidation(parent, "DTO package is not valid (example: com.example.generated.dto).");
+                continue;
+            }
 
-            applySettings(projectPath, javaOutputPath, basePackage, idStrategy, overwrite);
+            applySettings(projectPath, javaOutputPath, basePackage, dtoPackage, idStrategy, overwrite);
             return true;
         }
     }
@@ -143,11 +148,13 @@ public final class GenerationSettingsDialog {
             String projectPath,
             String javaOutputPath,
             String basePackage,
+            String dtoPackage,
             IdStrategy idStrategy,
             boolean overwrite
     ) {
         configureCodeOptions(MyPlugin.ENTITY_OPTIONS, javaOutputPath, basePackage + ".domain", idStrategy, overwrite);
         configureCodeOptions(MyPlugin.ENUM_OPTIONS, javaOutputPath, basePackage + ".enumeration", idStrategy, overwrite);
+        configureCodeOptions(MyPlugin.DTO_OPTIONS, javaOutputPath, dtoPackage, idStrategy, overwrite);
         configureCodeOptions(MyPlugin.REPO_OPTIONS, javaOutputPath, basePackage + ".repository", idStrategy, overwrite);
         configureCodeOptions(MyPlugin.SERVICE_CRUD_OPTIONS, javaOutputPath, basePackage + ".service.crud", idStrategy, overwrite);
         configureCodeOptions(MyPlugin.SERVICE_CRUD_IMPL_OPTIONS, javaOutputPath, basePackage + ".service.crud.impl", idStrategy, overwrite);
