@@ -41,4 +41,13 @@ public class FMModel {
 		}
 		return false;
 	}
+
+	public FMClass findEmbeddable(String className) {
+		for (FMClass c : getClasses()) {
+			if (className.equals(c.getName()) && c.isEmbeddable()) {
+				return c;
+			}
+		}
+		return null;
+	}
 }

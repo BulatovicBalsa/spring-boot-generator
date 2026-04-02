@@ -23,6 +23,7 @@ public class RepositoryGenerator extends BasicGenerator {
         super.generate();
 
         for (FMClass clazz : FMModel.getInstance().getClasses()) {
+            if(clazz.isEmbeddable()) continue;
             Writer out = getWriter(clazz.getName() + "Repository", generatorOptions.getFilePackage());
             if (out == null) continue;
 
