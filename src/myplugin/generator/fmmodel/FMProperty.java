@@ -27,6 +27,7 @@ public class FMProperty {
 	private Integer size;
 	private String minValue;
 	private String maxValue;
+	private Boolean hidden;
 
 // getters/setters
 

@@ -34,6 +34,9 @@ class GenerateAction extends MDAction {
 			EnumGenerator enumGenerator = new EnumGenerator(MyPlugin.ENUM_OPTIONS);
 			enumGenerator.generate();
 
+			DTOGenerator dtoGenerator = new DTOGenerator(MyPlugin.DTO_OPTIONS);
+			dtoGenerator.generate();
+
 			RepositoryGenerator repoGenerator = new RepositoryGenerator(MyPlugin.REPO_OPTIONS);
 			repoGenerator.generate();
 
@@ -50,7 +53,7 @@ class GenerateAction extends MDAction {
 			crudImplGenerator.generate();
 
 			ControllerGenerator ctrlGen =
-					new ControllerGenerator(MyPlugin.CONTROLLER_OPTIONS, entityPackage, serviceCrudPackage);
+					new ControllerGenerator(MyPlugin.CONTROLLER_OPTIONS, entityPackage, MyPlugin.DTO_OPTIONS.getFilePackage(), serviceCrudPackage);
 			ctrlGen.generate();
 
 			ProjectGenerator projectGenerator =

@@ -2,10 +2,12 @@ package ${packageName};
 
 import java.util.Set;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import ${dtoFqn};
 
 <#if imports??>
 <#list imports as i>
@@ -17,10 +19,10 @@ import ${i};
 @NoArgsConstructor
 @AllArgsConstructor
 <#if clazz.embeddable>
-  @Embeddable
+@Embeddable
 <#else>
-  @Entity
-  @Table(name = "${nameUtil.toSnakeCase(clazz.name)}")
+@Entity
+@Table(name = "${nameUtil.toTableName(clazz.name)}")
 </#if>
 public class ${clazz.name} {
 <#if !hasId && !clazz.embeddable>
@@ -86,9 +88,9 @@ public class ${clazz.name} {
       <#else>
     @ManyToMany
     @JoinTable(
-        name = "${nameUtil.toSnakeCase(clazz.name)}_${nameUtil.toSnakeCase(p.targetClass)}",
-        joinColumns = @JoinColumn(name = "${nameUtil.toSnakeCase(clazz.name)}_id"),
-        inverseJoinColumns = @JoinColumn(name = "${nameUtil.toSnakeCase(p.targetClass)}_id")
+        name = "${nameUtil.toTableName(clazz.name)}_${nameUtil.toTableName(p.targetClass)}",
+        joinColumns = @JoinColumn(name = "${nameUtil.toColumnName(clazz.name)}_id"),
+        inverseJoinColumns = @JoinColumn(name = "${nameUtil.toColumnName(p.targetClass)}_id")
     )
     private Set<${p.targetClass}> ${p.name} = new HashSet<${p.targetClass}>();
     </#if>
@@ -107,7 +109,7 @@ public class ${clazz.name} {
     @DecimalMax("${p.maxValue}")
     </#if>
     @Column(
-        name = "${nameUtil.toSnakeCase(p.name)}"<#if p.nullable??>,
+        name = "${nameUtil.toColumnName(p.name)}"<#if p.nullable??>,
         nullable = ${p.nullable?c}</#if><#if p.unique??>,
         unique = ${p.unique?c}</#if><#if p.size?? && typeUtil.toJava(p.type) == "String">,
         length = ${p.size}</#if>
@@ -119,4 +121,63 @@ public class ${clazz.name} {
   </#if>
 
 </#list>
+
+    public ${clazz.name}(${clazz.name}DTO dto) {
+        this(dto, true);
+    }
+
+    public ${clazz.name}(${clazz.name}DTO dto, boolean includeRelations) {
+<#if !hasId>
+        this.id = dto.getId();
+</#if>
+<#list props as p>
+  <#if !p.hidden?? || !p.hidden>
+    <#if p.relation>
+      <#if p.collection>
+        if (includeRelations && dto.get${p.name?cap_first}() != null) {
+            this.${p.name} = new LinkedHashSet<${p.targetClass}>();
+            for (${p.targetClass}DTO item : dto.get${p.name?cap_first}()) {
+                this.${p.name}.add(new ${p.targetClass}(item, false));
+            }
+        }
+      <#else>
+        if (includeRelations && dto.get${p.name?cap_first}() != null) {
+            this.${p.name} = new ${p.targetClass}(dto.get${p.name?cap_first}(), false);
+        }
+      </#if>
+    <#else>
+        this.${p.name} = dto.get${p.name?cap_first}();
+    </#if>
+  </#if>
+</#list>
+    }
+
+    public void updateFromDto(${clazz.name}DTO dto) {
+        updateFromDto(dto, true);
+    }
+
+    public void updateFromDto(${clazz.name}DTO dto, boolean includeRelations) {
+<#list props as p>
+  <#if !p.hidden?? || !p.hidden>
+    <#if p.relation>
+      <#if !p.id>
+        <#if p.collection>
+        if (includeRelations && dto.get${p.name?cap_first}() != null) {
+            this.${p.name} = new LinkedHashSet<${p.targetClass}>();
+            for (${p.targetClass}DTO item : dto.get${p.name?cap_first}()) {
+                this.${p.name}.add(new ${p.targetClass}(item, false));
+            }
+        }
+        <#else>
+        if (includeRelations) {
+            this.${p.name} = dto.get${p.name?cap_first}() == null ? null : new ${p.targetClass}(dto.get${p.name?cap_first}(), false);
+        }
+        </#if>
+      </#if>
+    <#elseif !p.id>
+        this.${p.name} = dto.get${p.name?cap_first}();
+    </#if>
+  </#if>
+</#list>
+    }
 }
