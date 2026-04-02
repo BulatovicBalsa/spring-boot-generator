@@ -17,6 +17,7 @@ public class FMClass {
 	private String name;
 	private List<FMProperty> properties = new ArrayList<>();
 	private boolean embeddable = false;
+	private boolean pagination = false;
 
 	public FMClass(String name) {
 		this.name = name;

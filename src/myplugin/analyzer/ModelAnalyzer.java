@@ -105,6 +105,7 @@ public class ModelAnalyzer {
 		}
 
 		addPropertiesFromClassMembers(cl, fmClass);
+		applyClassRepositoryQuery(cl, fmClass);
 		return fmClass;
 	}
 
@@ -157,6 +158,7 @@ public class ModelAnalyzer {
 		fp.setCollection(isCollection);
 		fp.setEnumeration(isEnum);
 		applyTaggedValueConstraints(p, fp);
+		applyRepositoryQueryTaggedValues(p, fp);
 		return fp;
 	}
 
@@ -396,6 +398,27 @@ public class ModelAnalyzer {
 				}
 			}
 		}
+	}
+
+	private void applyRepositoryQueryTaggedValues(Property source, FMProperty target) {
+		Stereotype stereo = StereotypesHelper.getAppliedStereotypeByString(source, "RepositoryQuery");
+		if (stereo == null) return;
+
+		target.setSearchable(getBooleanValue(source, stereo, "searchable", true));
+		target.setRangeQuery(getBooleanValue(source, stereo, "range", false));
+	}
+
+	private void applyClassRepositoryQuery(Class cl, FMClass fmClass) {
+		Stereotype stereo = StereotypesHelper.getAppliedStereotypeByString(cl, "RepositoryQuery");
+		if (stereo == null) return;
+
+		fmClass.setPagination(getBooleanValue(cl, stereo, "pagination", false));
+	}
+
+	private Boolean getBooleanValue(Element element, Stereotype stereo, String tag, boolean defaultValue) {
+		List<?> values = StereotypesHelper.getStereotypePropertyValue(element, stereo, tag);
+		if (values == null || values.isEmpty()) return defaultValue;
+		return (Boolean) values.get(0);
 	}
 
 	private void markAsManyToOne(FMProperty opposite, FMClass owner) {
