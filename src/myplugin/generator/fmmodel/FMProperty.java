@@ -15,18 +15,23 @@ public class FMProperty {
 	private boolean relation;
 	private boolean collection;
 	private boolean enumeration;
+	private boolean embedded = false;
 
 	private String targetClass;
 	private RelationKind relationKind;
 	private String mappedBy;
 
 	// Optional tagged-value driven constraints
-	private Boolean nullable;
-	private Boolean unique;
+	private Boolean nullable = false;
+	private Boolean unique = false;
 	private Integer size;
 	private String minValue;
 	private String maxValue;
+	private Boolean hidden;
 
+	private boolean searchable = false;    // findBy{name}
+	private boolean rangeQuery = false;    // findBy{date}Between
+	private boolean pagination = false;    // Pageable
 // getters/setters
 
 	public FMProperty(String name, String type, boolean id) {

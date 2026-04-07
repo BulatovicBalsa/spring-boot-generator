@@ -12,6 +12,7 @@ public class MyPlugin extends com.nomagic.magicdraw.plugins.Plugin {
 
 	public static GeneratorOptions ENTITY_OPTIONS;
 	public static GeneratorOptions ENUM_OPTIONS;
+	public static GeneratorOptions DTO_OPTIONS;
 	public static GeneratorOptions REPO_OPTIONS;
 	public static GeneratorOptions SERVICE_CRUD_OPTIONS;
 	public static GeneratorOptions SERVICE_CRUD_IMPL_OPTIONS;
@@ -51,6 +52,18 @@ public class MyPlugin extends com.nomagic.magicdraw.plugins.Plugin {
 		);
 
 		ENUM_OPTIONS.setTemplateDir(pluginDir + File.separator + ENUM_OPTIONS.getTemplateDir());
+
+		DTO_OPTIONS = new GeneratorOptions(
+			outputBasePath,
+			"dto",
+			"templates",
+			"{0}.java",
+			true,
+			"com.example.generated.dto",
+			IdStrategy.UUID
+		);
+
+		DTO_OPTIONS.setTemplateDir(pluginDir + File.separator + DTO_OPTIONS.getTemplateDir());
 
 		REPO_OPTIONS = new GeneratorOptions(
 			outputBasePath,

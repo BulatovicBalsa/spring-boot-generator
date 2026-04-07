@@ -98,7 +98,14 @@ public class ModelAnalyzer {
 		}
 
 		FMClass fmClass = new FMClass(cl.getName());
+
+		Stereotype embeddableStereo = StereotypesHelper.getAppliedStereotypeByString(cl, "Embeddable");
+		if (embeddableStereo != null) {
+			fmClass.setEmbeddable(true);
+		}
+
 		addPropertiesFromClassMembers(cl, fmClass);
+		applyClassRepositoryQuery(cl, fmClass);
 		return fmClass;
 	}
 
@@ -151,10 +158,15 @@ public class ModelAnalyzer {
 		fp.setCollection(isCollection);
 		fp.setEnumeration(isEnum);
 		applyTaggedValueConstraints(p, fp);
+		applyRepositoryQueryTaggedValues(p, fp);
 		return fp;
 	}
 
 	private void applyTaggedValueConstraints(Property source, FMProperty target) {
+		for (Stereotype stereotype : StereotypesHelper.getStereotypes(source)) {
+			applyTaggedValuesFromStereotype(source, target, stereotype);
+		}
+
 		applyTaggedValuesFromStereotype(source, target, "Validation");
 		applyTaggedValuesFromStereotype(source, target, "validation");
 		applyTaggedValuesFromStereotype(source, target, "Constraints");
@@ -163,8 +175,7 @@ public class ModelAnalyzer {
 		applyTaggedValuesFromStereotype(source, target, "column");
 	}
 
-	private void applyTaggedValuesFromStereotype(Property source, FMProperty target, String stereotypeName) {
-		Stereotype stereotype = StereotypesHelper.getAppliedStereotypeByString(source, stereotypeName);
+	private void applyTaggedValuesFromStereotype(Property source, FMProperty target, Stereotype stereotype) {
 		if (stereotype == null) return;
 
 		for (Property tag : stereotype.getOwnedAttribute()) {
@@ -173,6 +184,12 @@ public class ModelAnalyzer {
 			Object raw = values.get(0);
 			mapTagValueToConstraint(tag.getName(), raw, target);
 		}
+	}
+
+	private void applyTaggedValuesFromStereotype(Property source, FMProperty target, String stereotypeName) {
+		Stereotype stereotype = StereotypesHelper.getAppliedStereotypeByString(source, stereotypeName);
+		if (stereotype == null) return;
+		applyTaggedValuesFromStereotype(source, target, stereotype);
 	}
 
 	private void mapTagValueToConstraint(String rawTagName, Object rawValue, FMProperty target) {
@@ -212,6 +229,13 @@ public class ModelAnalyzer {
 		if ("max".equals(tag) || "maxvalue".equals(tag) || "maximum".equals(tag)) {
 			String value = parseNumericText(rawValue);
 			if (value != null) target.setMaxValue(value);
+			return;
+		}
+
+		if ("hide".equals(tag) || "internal".equals(tag) || tag.startsWith("hidden") || tag.startsWith("Hidden")) {
+			Boolean value = parseBoolean(rawValue);
+			if (value != null) target.setHidden(value);
+			return;
 		}
 	}
 
@@ -271,6 +295,13 @@ public class ModelAnalyzer {
 				FMClass target = fmClassByName.get(p.getType());
 				if (target == null) {
 					continue; // not a relation to another class in the model
+				}
+
+				if (target.isEmbeddable()) {
+					p.setEmbedded(true);
+					p.setRelation(false);
+					p.setTargetClass(target.getName());
+					continue;
 				}
 
 				p.setRelation(true);
@@ -369,6 +400,27 @@ public class ModelAnalyzer {
 		}
 	}
 
+	private void applyRepositoryQueryTaggedValues(Property source, FMProperty target) {
+		Stereotype stereo = StereotypesHelper.getAppliedStereotypeByString(source, "RepositoryQuery");
+		if (stereo == null) return;
+
+		target.setSearchable(getBooleanValue(source, stereo, "searchable", true));
+		target.setRangeQuery(getBooleanValue(source, stereo, "range", false));
+	}
+
+	private void applyClassRepositoryQuery(Class cl, FMClass fmClass) {
+		Stereotype stereo = StereotypesHelper.getAppliedStereotypeByString(cl, "RepositoryQuery");
+		if (stereo == null) return;
+
+		fmClass.setPagination(getBooleanValue(cl, stereo, "pagination", false));
+	}
+
+	private Boolean getBooleanValue(Element element, Stereotype stereo, String tag, boolean defaultValue) {
+		List<?> values = StereotypesHelper.getStereotypePropertyValue(element, stereo, tag);
+		if (values == null || values.isEmpty()) return defaultValue;
+		return (Boolean) values.get(0);
+	}
+
 	private void markAsManyToOne(FMProperty opposite, FMClass owner) {
 		opposite.setRelation(true);
 		opposite.setTargetClass(owner.getName());
@@ -388,5 +440,14 @@ public class ModelAnalyzer {
 			}
 		}
 		return null;
+	}
+
+	private void classifyElementType(Class cl, FMClass fmClass) {
+		Stereotype embeddableStereo = StereotypesHelper.getAppliedStereotypeByString(cl, "Embeddable");
+		if (embeddableStereo != null) {
+			fmClass.setEmbeddable(true);
+			return;
+		}
+		fmClass.setEmbeddable(false);
 	}
 }

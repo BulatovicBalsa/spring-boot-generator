@@ -3,6 +3,7 @@ package myplugin.generator;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,6 +35,7 @@ public class RepositoryGenerator extends BasicGenerator {
         super.generate();
 
         for (FMClass clazz : FMModel.getInstance().getClasses()) {
+            if(clazz.isEmbeddable()) continue;
             Path outputPath = resolveOutputPath(clazz.getName() + "Repository", generatorOptions.getFilePackage());
             if (!generatorOptions.getOverwrite() && Files.exists(outputPath)) {
                 continue;
