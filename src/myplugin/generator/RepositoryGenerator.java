@@ -123,8 +123,14 @@ public class RepositoryGenerator extends BasicGenerator {
         }
 
         int contentStart = start + startMarker.length();
+        String contentToInsert = preservedContent;
+        if (contentToInsert == null || contentToInsert.trim().isEmpty()) {
+            // Keep at least one empty line between markers for stable regeneration.
+            contentToInsert = System.lineSeparator() + System.lineSeparator();
+        }
+
         return target.substring(0, contentStart)
-                + preservedContent
-                + target.substring(end);
+            + contentToInsert
+            + target.substring(end);
     }
 }
