@@ -11,10 +11,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+// <protected:imports>
+
+// </protected:imports>
+
 import ${entityPackage}.${clazz.name};
 
 @Repository
 public interface ${clazz.name}Repository extends JpaRepository<${clazz.name}, ${idType}> {
+	// <protected:methods>
+
+	// </protected:methods>
 
 <#list clazz.properties as p>
 <#if p.searchable && !p.relation && !p.embedded>
