@@ -29,6 +29,7 @@ public class ControllerGenerator extends BasicGenerator {
         super.generate();
 
         for (FMClass clazz : FMModel.getInstance().getClasses()) {
+            if(clazz.isEmbeddable()) continue;
             Writer out = getWriter(clazz.getName() + "Controller", generatorOptions.getFilePackage());
             if (out == null) continue;
 
@@ -49,6 +50,7 @@ public class ControllerGenerator extends BasicGenerator {
             model.put("dtoFqn", dtoFqn);
             model.put("serviceFqn", serviceFqn);
             model.put("basePath", basePath);
+            model.put("typeUtil", new TypeUtil());
 
             try {
                 getTemplate().process(model, out);

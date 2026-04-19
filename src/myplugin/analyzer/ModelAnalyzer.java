@@ -98,7 +98,14 @@ public class ModelAnalyzer {
 		}
 
 		FMClass fmClass = new FMClass(cl.getName());
+
+		Stereotype embeddableStereo = StereotypesHelper.getAppliedStereotypeByString(cl, "Embeddable");
+		if (embeddableStereo != null) {
+			fmClass.setEmbeddable(true);
+		}
+
 		addPropertiesFromClassMembers(cl, fmClass);
+		applyClassRepositoryQuery(cl, fmClass);
 		return fmClass;
 	}
 
@@ -151,6 +158,7 @@ public class ModelAnalyzer {
 		fp.setCollection(isCollection);
 		fp.setEnumeration(isEnum);
 		applyTaggedValueConstraints(p, fp);
+		applyRepositoryQueryTaggedValues(p, fp);
 		return fp;
 	}
 
@@ -289,6 +297,13 @@ public class ModelAnalyzer {
 					continue; // not a relation to another class in the model
 				}
 
+				if (target.isEmbeddable()) {
+					p.setEmbedded(true);
+					p.setRelation(false);
+					p.setTargetClass(target.getName());
+					continue;
+				}
+
 				p.setRelation(true);
 				p.setTargetClass(target.getName());
 
@@ -385,6 +400,27 @@ public class ModelAnalyzer {
 		}
 	}
 
+	private void applyRepositoryQueryTaggedValues(Property source, FMProperty target) {
+		Stereotype stereo = StereotypesHelper.getAppliedStereotypeByString(source, "RepositoryQuery");
+		if (stereo == null) return;
+
+		target.setSearchable(getBooleanValue(source, stereo, "searchable", true));
+		target.setRangeQuery(getBooleanValue(source, stereo, "range", false));
+	}
+
+	private void applyClassRepositoryQuery(Class cl, FMClass fmClass) {
+		Stereotype stereo = StereotypesHelper.getAppliedStereotypeByString(cl, "RepositoryQuery");
+		if (stereo == null) return;
+
+		fmClass.setPagination(getBooleanValue(cl, stereo, "pagination", false));
+	}
+
+	private Boolean getBooleanValue(Element element, Stereotype stereo, String tag, boolean defaultValue) {
+		List<?> values = StereotypesHelper.getStereotypePropertyValue(element, stereo, tag);
+		if (values == null || values.isEmpty()) return defaultValue;
+		return (Boolean) values.get(0);
+	}
+
 	private void markAsManyToOne(FMProperty opposite, FMClass owner) {
 		opposite.setRelation(true);
 		opposite.setTargetClass(owner.getName());
@@ -404,5 +440,14 @@ public class ModelAnalyzer {
 			}
 		}
 		return null;
+	}
+
+	private void classifyElementType(Class cl, FMClass fmClass) {
+		Stereotype embeddableStereo = StereotypesHelper.getAppliedStereotypeByString(cl, "Embeddable");
+		if (embeddableStereo != null) {
+			fmClass.setEmbeddable(true);
+			return;
+		}
+		fmClass.setEmbeddable(false);
 	}
 }
