@@ -10,6 +10,8 @@ import java.time.LocalDate;
 import java.util.UUID;
 </#if>
 
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,11 +30,14 @@ import ${serviceFqn};
 public class ${clazz.name}PageController {
 
     private final I${clazz.name}ServiceCrud service;
+    private final ApplicationContext applicationContext;
 
-    public ${clazz.name}PageController(I${clazz.name}ServiceCrud service) {
+    public ${clazz.name}PageController(I${clazz.name}ServiceCrud service, ApplicationContext applicationContext) {
         this.service = service;
+        this.applicationContext = applicationContext;
     }
 
+    @Transactional(readOnly = true)
     @GetMapping
     public String list(Model model) {
         List<${clazz.name}DTO> items = new ArrayList<${clazz.name}DTO>();
@@ -67,6 +72,7 @@ public class ${clazz.name}PageController {
         return "crud/list";
     }
 
+    @Transactional(readOnly = true)
     @GetMapping("/{id}")
     public String details(@PathVariable ${idType} id, Model model) {
         ${clazz.name} found = service.findById(id);
@@ -84,6 +90,7 @@ public class ${clazz.name}PageController {
         return "crud/details";
     }
 
+    @Transactional(readOnly = true)
     @GetMapping("/new")
     public String createForm(Model model) {
         ${clazz.name}DTO dto = new ${clazz.name}DTO();
@@ -108,6 +115,7 @@ public class ${clazz.name}PageController {
         }
     }
 
+    @Transactional(readOnly = true)
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable ${idType} id, Model model) {
         ${clazz.name} found = service.findById(id);
@@ -160,13 +168,68 @@ public class ${clazz.name}PageController {
         return "redirect:${basePath}";
     }
 
+    private List<Map<String, Object>> getRelationshipOptions(Class<?> dtoFieldType) {
+        List<Map<String, Object>> options = new ArrayList<Map<String, Object>>();
+        try {
+            String dtoTypeName = dtoFieldType.getSimpleName();
+            String entityName = dtoTypeName.endsWith("DTO")
+            ? dtoTypeName.substring(0, dtoTypeName.length() - 3)
+            : dtoTypeName;
+
+            Object matchedService = null;
+            try {
+                String beanName = entityName.substring(0, 1).toLowerCase() + entityName.substring(1) + "ServiceCrudImpl";
+                matchedService = applicationContext.getBean(beanName);
+            } catch (Exception e) {
+                return options;
+            }
+
+            if (matchedService == null) {
+                return options;
+            }
+
+            java.lang.reflect.Method findAll = matchedService.getClass().getMethod("findAll");
+            List<?> entities = (List<?>) findAll.invoke(matchedService);
+
+            for (Object entity : entities) {
+                Map<String, Object> option = new LinkedHashMap<String, Object>();
+
+                java.lang.reflect.Method getId = entity.getClass().getMethod("getId");
+                option.put("id", getId.invoke(entity));
+
+                option.put("label", getFirstNonIdFieldValue(entity));
+
+                options.add(option);
+            }
+        } catch (Exception e) { }
+        return options;
+    }
+
+    private String getFirstNonIdFieldValue(Object entity) {
+        for (java.lang.reflect.Field field : entity.getClass().getDeclaredFields()) {
+            if ("id".equals(field.getName())) continue;
+            if (!isSimpleEditableType(field.getType())) continue;
+            field.setAccessible(true);
+            try {
+                Object val = field.get(entity);
+                if (val != null) return val.toString();
+            } catch (IllegalAccessException ignored) {}
+        }
+
+        try {
+            java.lang.reflect.Method getId = entity.getClass().getMethod("getId");
+            return entity.getClass().getSimpleName() + "#" + getId.invoke(entity);
+        } catch (Exception ignored) {}
+        return entity.toString();
+    }
+
     private Map<String, Object> toMap(${clazz.name}DTO dto) {
         Map<String, Object> map = new LinkedHashMap<String, Object>();
         for (java.lang.reflect.Field field : ${clazz.name}DTO.class.getDeclaredFields()) {
             field.setAccessible(true);
             try {
                 Object value = field.get(dto);
-                map.put(field.getName(), normalizeValue(value));
+                map.put(field.getName(), normalizeValue(field, value));
             } catch (IllegalAccessException ignored) {
                 map.put(field.getName(), null);
             }
@@ -174,26 +237,32 @@ public class ${clazz.name}PageController {
         return map;
     }
 
-    private Object normalizeValue(Object value) {
-        if (value == null) {
-            return null;
+    private Object normalizeValue(java.lang.reflect.Field field, Object value) {
+        if (value == null) return null;
+
+        if (value instanceof java.util.Collection) {
+            if (org.hibernate.Hibernate.isInitialized(value)) {
+                return "Count: " + ((java.util.Collection<?>) value).size();
+            }
+
+            return "Count: ?";
         }
-        if (value instanceof String || value instanceof Number || value instanceof Boolean || value.getClass().isEnum()) {
+
+        String typeName = field.getType().getSimpleName();
+        if (typeName.endsWith("DTO") && !isSimpleEditableType(field.getType())) {
+            return getFirstNonIdFieldValue(value);
+        }
+
+        if (value instanceof String || value instanceof Number || value instanceof Boolean
+            || value.getClass().isEnum()) {
             return value;
         }
+
         if (value instanceof java.util.UUID || value instanceof java.time.temporal.Temporal) {
             return value.toString();
         }
-        if (value instanceof java.util.Collection) {
-            return "Collection(size=" + ((java.util.Collection<?>) value).size() + ")";
-        }
-        try {
-            java.lang.reflect.Method getId = value.getClass().getMethod("getId");
-            Object id = getId.invoke(value);
-            return value.getClass().getSimpleName() + "#" + id;
-        } catch (Exception ignored) {
-            return value.toString();
-        }
+
+        return value.toString();
     }
 
     private List<Map<String, Object>> buildFormFields(${clazz.name}DTO dto) {
@@ -204,13 +273,42 @@ public class ${clazz.name}PageController {
             if ("id".equals(name)) {
                 continue;
             }
-            if (!isSimpleEditableType(field.getType())) {
-                continue;
-            }
+            Class<?> type = field.getType();
+            String typeName = type.getSimpleName();
 
             Map<String, Object> f = new LinkedHashMap<String, Object>();
             f.put("name", name);
             f.put("label", toLabel(name));
+
+            if (typeName.endsWith("DTO") && !isSimpleEditableType(type)) {
+                List<Map<String, Object>> options = getRelationshipOptions(type);
+                f.put("type", "select");
+                f.put("options", options);
+
+                Object currentDto = null;
+                field.setAccessible(true);
+                try { currentDto = field.get(dto); } catch (IllegalAccessException ignored) {}
+                Object selectedId = null;
+                if (currentDto != null) {
+                    try {
+                        java.lang.reflect.Field idField = currentDto.getClass().getDeclaredField("id");
+                        idField.setAccessible(true);
+                        selectedId = idField.get(currentDto);
+                    } catch (Exception ignored) {}
+                }
+                f.put("selectedId", selectedId == null ? "" : selectedId.toString());
+                fields.add(f);
+                continue;
+            }
+
+            if (java.util.Collection.class.isAssignableFrom(type)) {
+                continue;
+            }
+
+            if (!isSimpleEditableType(type)) continue;
+
+            f.put("type", "text");
+
             Object value = values.get(name);
             f.put("value", value == null ? "" : value.toString());
             fields.add(f);
@@ -222,11 +320,34 @@ public class ${clazz.name}PageController {
         ${clazz.name}DTO dto = new ${clazz.name}DTO();
         for (java.lang.reflect.Field field : ${clazz.name}DTO.class.getDeclaredFields()) {
             String name = field.getName();
-            if ("id".equals(name) || !formData.containsKey(name) || !isSimpleEditableType(field.getType())) {
+            if ("id".equals(name)) {
                 continue;
             }
+            Class<?> type = field.getType();
+            String typeName = type.getSimpleName();
+
+            if (typeName.endsWith("DTO") && !isSimpleEditableType(type)) {
+                if (!formData.containsKey(name)) continue;
+                String rawId = formData.get(name);
+                if (rawId == null || rawId.trim().isEmpty()) continue;
+
+                Object relatedDto = type.getDeclaredConstructor().newInstance();
+                try {
+                    java.lang.reflect.Field idField = type.getDeclaredField("id");
+                    idField.setAccessible(true);
+                    idField.set(relatedDto, parseValue(idField.getType(), rawId));
+                } catch (NoSuchFieldException ignored) {}
+                    field.setAccessible(true);
+                    field.set(dto, relatedDto);
+                    continue;
+            }
+
+            if (java.util.Collection.class.isAssignableFrom(type)) continue;
+            if (!isSimpleEditableType(type)) continue;
+            if (!formData.containsKey(name)) continue;
+
             field.setAccessible(true);
-            Object value = parseValue(field.getType(), formData.get(name));
+            Object value = parseValue(type, formData.get(name));
             field.set(dto, value);
         }
         return dto;

@@ -1,7 +1,7 @@
 package ${packageName};
 
-import java.util.Set;
-import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
 <#if idType == "UUID">
 import java.util.UUID;
 </#if>
@@ -32,7 +32,7 @@ public class ${clazz.name}DTO {
   <#if !p.hidden?? || !p.hidden>
     <#if p.relation>
       <#if p.collection>
-    private Set<${p.targetClass}DTO> ${p.name} = new HashSet<${p.targetClass}DTO>();
+    private List<${p.targetClass}DTO> ${p.name} = new ArrayList<${p.targetClass}DTO>();
       <#else>
     private ${p.targetClass}DTO ${p.name};
       </#if>

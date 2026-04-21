@@ -10,7 +10,8 @@
         .card { max-width: 720px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; background: white; }
         .field { margin-bottom: 12px; }
         .field label { display: block; margin-bottom: 6px; color: #374151; font-weight: 600; }
-        .field input { width: 100%; padding: 9px 10px; border: 1px solid #d1d5db; border-radius: 6px; }
+        .field input, .field select { width: 100%; padding: 9px 10px; border: 1px solid #d1d5db; border-radius: 6px; }
+        .field select { cursor: pointer; }
         .actions { margin-top: 12px; display: flex; gap: 10px; align-items: center; }
         .btn { display: inline-block; padding: 8px 12px; text-decoration: none; background: #2563eb; color: white; border-radius: 6px; border: none; cursor: pointer; }
         .btn-secondary { background: #6b7280; }
@@ -26,7 +27,23 @@
     <form th:if="${!#lists.isEmpty(fields)}" th:action="${formAction}" method="post">
         <div class="field" th:each="f : ${fields}">
             <label th:for="${f['name']}" th:text="${f['label']}">Field</label>
-            <input type="text" th:id="${f['name']}" th:name="${f['name']}" th:value="${f['value']}"/>
+
+            <select th:if="${f['type'] == 'select'}"
+                    th:id="${f['name']}"
+                    th:name="${f['name']}">
+                <option value="">-- select --</option>
+                <option th:each="opt : ${f['options']}"
+                        th:value="${opt['id']}"
+                        th:text="${opt['label']}"
+                        th:selected="${opt['id'].toString() == f['selectedId']}">
+                </option>
+            </select>
+
+            <input th:if="${f['type'] == 'text'}"
+                   type="text"
+                   th:id="${f['name']}"
+                   th:name="${f['name']}"
+                   th:value="${f['value']}"/>
         </div>
 
         <div class="actions">

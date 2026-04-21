@@ -10,6 +10,11 @@
         .card { max-width: 720px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; background: white; }
         .row { display: grid; grid-template-columns: 180px 1fr; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
         .row:last-child { border-bottom: 0; }
+        .count-badge {
+            display: inline-block; background: #e5e7eb;
+            color: #374151; border-radius: 12px;
+            padding: 1px 8px; font-size: 12px;
+        }
         .k { color: #6b7280; font-weight: 600; }
         .v { word-break: break-word; }
         .actions { margin-top: 14px; }
@@ -22,7 +27,16 @@
 <div class="card">
     <div class="row" th:each="entryItem : ${entry.entrySet()}">
         <div class="k" th:text="${entryItem.key}">key</div>
-        <div class="v" th:text="${entryItem.value} ?: '-'">value</div>
+        <div class="v">
+
+            <span th:if="${entryItem.value != null and entryItem.value.toString().startsWith('Count:')}"
+                  class="count-badge"
+                  th:text="${entryItem.value}">
+            </span>
+
+            <span th:if="${entryItem.value == null or !entryItem.value.toString().startsWith('Count:')}"
+                  th:text="${entryItem.value} ?: '-'">
+            </span></div>
     </div>
 </div>
 

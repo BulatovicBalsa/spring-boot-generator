@@ -1,5 +1,7 @@
 package ${packageName};
 
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -67,7 +69,7 @@ public class ${clazz.name} {
       <#else>
     @OneToMany
       </#if>
-    private Set<${p.targetClass}> ${p.name} = new HashSet<${p.targetClass}>();
+    private List<${p.targetClass}> ${p.name} = new ArrayList<${p.targetClass}>();
     <#elseif p.relationKind.name() == "ONE_TO_ONE">
       <#if p.nullable?? && !p.nullable>
     @NotNull
@@ -84,7 +86,7 @@ public class ${clazz.name} {
     <#elseif p.relationKind.name() == "MANY_TO_MANY">
       <#if p.mappedBy?? && p.mappedBy?has_content>
     @ManyToMany(mappedBy = "${p.mappedBy}")
-    private Set<${p.targetClass}> ${p.name} = new HashSet<${p.targetClass}>();
+    private List<${p.targetClass}> ${p.name} = new List<${p.targetClass}>();
       <#else>
     @ManyToMany
     @JoinTable(
@@ -92,7 +94,7 @@ public class ${clazz.name} {
         joinColumns = @JoinColumn(name = "${nameUtil.toColumnName(clazz.name)}_id"),
         inverseJoinColumns = @JoinColumn(name = "${nameUtil.toColumnName(p.targetClass)}_id")
     )
-    private Set<${p.targetClass}> ${p.name} = new HashSet<${p.targetClass}>();
+    private List<${p.targetClass}> ${p.name} = new ArrayList<${p.targetClass}>();
     </#if>
     </#if>
   <#else>
@@ -135,7 +137,7 @@ public class ${clazz.name} {
     <#if p.relation>
       <#if p.collection>
         if (includeRelations && dto.get${p.name?cap_first}() != null) {
-            this.${p.name} = new LinkedHashSet<${p.targetClass}>();
+            this.${p.name} = new ArrayList<${p.targetClass}>();
             for (${p.targetClass}DTO item : dto.get${p.name?cap_first}()) {
                 this.${p.name}.add(new ${p.targetClass}(item, false));
             }
@@ -163,7 +165,7 @@ public class ${clazz.name} {
       <#if !p.id>
         <#if p.collection>
         if (includeRelations && dto.get${p.name?cap_first}() != null) {
-            this.${p.name} = new LinkedHashSet<${p.targetClass}>();
+            this.${p.name} = new ArrayList<${p.targetClass}>();
             for (${p.targetClass}DTO item : dto.get${p.name?cap_first}()) {
                 this.${p.name}.add(new ${p.targetClass}(item, false));
             }
