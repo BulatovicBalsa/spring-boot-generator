@@ -8,7 +8,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -25,6 +28,7 @@ public class RepositoryGenerator extends BasicGenerator {
     private static final String METHODS_END = "// </protected:methods>";
 
     private final TypeUtil typeUtil = new TypeUtil();
+    private final List<String> generationWarnings = new ArrayList<String>();
 
     public RepositoryGenerator(GeneratorOptions options) {
         super(options);
@@ -33,6 +37,7 @@ public class RepositoryGenerator extends BasicGenerator {
     @Override
     public void generate() throws IOException {
         super.generate();
+        generationWarnings.clear();
 
         for (FMClass clazz : FMModel.getInstance().getClasses()) {
             if(clazz.isEmbeddable()) continue;
@@ -57,12 +62,14 @@ public class RepositoryGenerator extends BasicGenerator {
                 if (Files.exists(outputPath)) {
                     String existingContent = new String(Files.readAllBytes(outputPath), StandardCharsets.UTF_8);
                     try {
+                        validateProtectedMarkers(existingContent, outputPath);
                         String importsBlock = extractProtectedContent(existingContent, IMPORTS_START, IMPORTS_END);
                         String methodsBlock = extractProtectedContent(existingContent, METHODS_START, METHODS_END);
                         finalContent = replaceProtectedContent(finalContent, IMPORTS_START, IMPORTS_END, importsBlock);
                         finalContent = replaceProtectedContent(finalContent, METHODS_START, METHODS_END, methodsBlock);
                     } catch (IllegalStateException e) {
-                        System.err.println("Skipping overwrite for malformed protected areas in: " + outputPath);
+                        generationWarnings.add("Skipped " + outputPath.getFileName() + ": " + e.getMessage());
+                        System.err.println("Skipping overwrite for malformed protected areas in: " + outputPath + " - " + e.getMessage());
                         continue;
                     }
                 }
@@ -102,10 +109,6 @@ public class RepositoryGenerator extends BasicGenerator {
     private String extractProtectedContent(String source, String startMarker, String endMarker) {
         int start = source.indexOf(startMarker);
         int end = source.indexOf(endMarker);
-
-        if (start < 0 && end < 0) {
-            return "";
-        }
         if (start < 0 || end < 0 || end < start) {
             throw new IllegalStateException("Malformed protected block");
         }
@@ -132,5 +135,39 @@ public class RepositoryGenerator extends BasicGenerator {
         return target.substring(0, contentStart)
             + contentToInsert
             + target.substring(end);
+    }
+
+    private void validateProtectedMarkers(String source, Path outputPath) {
+        validateMarkerPair(source, IMPORTS_START, IMPORTS_END, outputPath);
+        validateMarkerPair(source, METHODS_START, METHODS_END, outputPath);
+    }
+
+    private void validateMarkerPair(String source, String startMarker, String endMarker, Path outputPath) {
+        int start = source.indexOf(startMarker);
+        int end = source.indexOf(endMarker);
+        String markerName = markerDisplayName(startMarker);
+
+        if (start >= 0 && end >= 0 && end > start) {
+            return;
+        }
+        if (start < 0 && end < 0) {
+            throw new IllegalStateException("missing " + markerName + " markers in existing file " + outputPath.getFileName());
+        }
+
+        throw new IllegalStateException("malformed " + markerName + " markers in existing file " + outputPath.getFileName());
+    }
+
+    private String markerDisplayName(String startMarker) {
+        if (IMPORTS_START.equals(startMarker)) {
+            return "protected imports";
+        }
+        if (METHODS_START.equals(startMarker)) {
+            return "protected methods";
+        }
+        return "protected";
+    }
+
+    public List<String> getGenerationWarnings() {
+        return Collections.unmodifiableList(generationWarnings);
     }
 }
